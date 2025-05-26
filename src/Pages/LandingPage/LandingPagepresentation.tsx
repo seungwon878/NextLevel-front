@@ -46,7 +46,15 @@ interface Props {
   professorOptions: string[];
 }
 
-const TopNav = () => {
+interface TopNavProps {
+  isAuthenticated: boolean;
+  onLogout: () => void;
+}
+
+const TopNav: React.FC<TopNavProps> = ({
+  isAuthenticated,
+  onLogout
+}) => {
   const navigate = useNavigate();
   return (
     <Flex
@@ -68,12 +76,41 @@ const TopNav = () => {
         <Button variant="ghost" onClick={() => navigate('/chat')}>채팅</Button>
       </HStack>
       <HStack spacing={2}>
-        <Button colorScheme="gray" variant="outline">
-          LOGIN
-        </Button>
-        <Button colorScheme="gray" variant="solid">
-          MyPage
-        </Button>
+        {isAuthenticated ? (
+          <>
+            <Button 
+              colorScheme="gray" 
+              variant="outline" 
+              onClick={onLogout} // 로그아웃
+            >
+              LOGOUT
+            </Button>
+            <Button 
+              colorScheme="gray" 
+              variant="solid" 
+              onClick={() => navigate('/mypage')} // 마이페이지
+            >
+              MyPage
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button 
+              colorScheme="gray" 
+              variant="outline" 
+              onClick={() => navigate('/login')} // 로그인
+            >
+              LOGIN
+            </Button>
+            <Button 
+              colorScheme="gray" 
+              variant="solid" 
+              onClick={() => navigate('/signup')} // 회원가입
+            >
+              register
+            </Button>
+          </>
+        )}
       </HStack>
     </Flex>
   );
@@ -208,7 +245,7 @@ const SideBar = ({
   );
 };
 
-const LandingPagePresentation: React.FC<Props> = ({
+const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
   items,
   searchText,
   onSearchTextChange,
@@ -221,11 +258,16 @@ const LandingPagePresentation: React.FC<Props> = ({
   schoolOptions,
   subjectOptions,
   professorOptions,
+  isAuthenticated,
+  onLogout,
 }) => {
   const navigate = useNavigate();
   return (
     <Box minH="100vh" bg="#F5F7FA">
-      <TopNav />
+      <TopNav
+        isAuthenticated={isAuthenticated}
+        onLogout={onLogout}
+      />
       <Flex>
         <SideBar
           searchText={searchText}

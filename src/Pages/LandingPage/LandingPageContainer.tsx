@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LandingPagePresentation from './LandingPagepresentation';
 import { Item } from './LandingPagepresentation';
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../../AppContext';
 //import { useAppContext } from "../../AppContext";
 
 const dummyItems: Item[] = [
@@ -37,6 +38,7 @@ const LandingPageContainer: React.FC = () => {
   const [school, setSchool] = useState('');
   const [subject, setSubject] = useState('');
   const [professor, setProfessor] = useState('');
+  const { isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     // TODO: 실제 API 호출 로직으로 교체
@@ -69,6 +71,8 @@ const LandingPageContainer: React.FC = () => {
       schoolOptions={schoolOptions}
       subjectOptions={subjectOptions}
       professorOptions={professorOptions}
+      isAuthenticated={isAuthenticated}
+      onLogout={logout}
     />
   );
 };
