@@ -11,6 +11,7 @@ import {
   Divider,
   Spacer,
 } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 export interface Item {
   id: number;
@@ -146,59 +147,62 @@ const LandingPagePresentation: React.FC<Props> = ({
   schoolOptions,
   subjectOptions,
   professorOptions,
-}) => (
-  <Box minH="100vh" bg="#F5F7FA">
-    <TopNav />
-    <Flex>
-      <SideBar
-        searchText={searchText}
-        onSearchTextChange={onSearchTextChange}
-        school={school}
-        onSchoolChange={onSchoolChange}
-        subject={subject}
-        onSubjectChange={onSubjectChange}
-        professor={professor}
-        onProfessorChange={onProfessorChange}
-        schoolOptions={schoolOptions}
-        subjectOptions={subjectOptions}
-        professorOptions={professorOptions}
-        items={items}
-      />
-      <Box flex="1" p={12} bg="#F5F7FA">
-        <Box
-          bg="white"
-          borderRadius="lg"
-          border="3px solid #2D3748"
-          p={8}
-          minH="600px"
-        >
-          <Text fontWeight="bold" fontSize="lg" mb={4}>
-            Section 30
-          </Text>
-          <VStack spacing={8} align="stretch">
-            {items.map((item) => (
-              <Box key={item.id}>
-                <Flex align="center" justify="space-between">
-                  <Text fontWeight="bold" fontSize="2xl">
-                    {item.title}
-                  </Text>
-                  <HStack>
-                    <Button variant="outline" colorScheme="gray">
-                      자세히 보기
-                    </Button>
-                    <Button colorScheme="gray" variant="solid">
-                      채팅
-                    </Button>
-                  </HStack>
-                </Flex>
-                <Divider my={4} />
-              </Box>
-            ))}
-          </VStack>
+}) => {
+  const navigate = useNavigate();
+  return (
+    <Box minH="100vh" bg="#F5F7FA">
+      <TopNav />
+      <Flex>
+        <SideBar
+          searchText={searchText}
+          onSearchTextChange={onSearchTextChange}
+          school={school}
+          onSchoolChange={onSchoolChange}
+          subject={subject}
+          onSubjectChange={onSubjectChange}
+          professor={professor}
+          onProfessorChange={onProfessorChange}
+          schoolOptions={schoolOptions}
+          subjectOptions={subjectOptions}
+          professorOptions={professorOptions}
+          items={items}
+        />
+        <Box flex="1" p={12} bg="#F5F7FA">
+          <Box
+            bg="white"
+            borderRadius="lg"
+            border="3px solid #2D3748"
+            p={8}
+            minH="600px"
+          >
+            <Text fontWeight="bold" fontSize="lg" mb={4}>
+              Section 30
+            </Text>
+            <VStack spacing={8} align="stretch">
+              {items.map((item) => (
+                <Box key={item.id}>
+                  <Flex align="center" justify="space-between">
+                    <Text fontWeight="bold" fontSize="2xl">
+                      {item.title}
+                    </Text>
+                    <HStack>
+                      <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/information/${item.id}`)}>
+                        자세히 보기
+                      </Button>
+                      <Button colorScheme="gray" variant="solid">
+                        채팅
+                      </Button>
+                    </HStack>
+                  </Flex>
+                  <Divider my={4} />
+                </Box>
+              ))}
+            </VStack>
+          </Box>
         </Box>
-      </Box>
-    </Flex>
-  </Box>
-);
+      </Flex>
+    </Box>
+  );
+};
 
 export default LandingPagePresentation;
