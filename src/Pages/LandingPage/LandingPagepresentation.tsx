@@ -16,6 +16,9 @@ export interface Item {
   id: number;
   section: string;
   title: string;
+  school: string;
+  subject: string;
+  professor: string;
 }
 
 interface Props {
@@ -28,6 +31,9 @@ interface Props {
   onSubjectChange: (v: string) => void;
   professor: string;
   onProfessorChange: (v: string) => void;
+  schoolOptions: string[];
+  subjectOptions: string[];
+  professorOptions: string[];
 }
 
 const TopNav = () => (
@@ -69,6 +75,9 @@ const SideBar = ({
   onSubjectChange,
   professor,
   onProfessorChange,
+  schoolOptions,
+  subjectOptions,
+  professorOptions,
 }: Props) => (
   <Box
     w="260px"
@@ -88,15 +97,30 @@ const SideBar = ({
       </Box>
       <Box>
         <Text mb={1}>학교</Text>
-        <Select placeholder="Select" value={school} onChange={e => onSchoolChange(e.target.value)} />
+        <Select placeholder="학교 선택" value={school} onChange={e => onSchoolChange(e.target.value)}>
+          <option value="">학교 선택</option>
+          {schoolOptions.map((school) => (
+            <option key={school} value={school}>{school}</option>
+          ))}
+        </Select>
       </Box>
       <Box>
         <Text mb={1}>과목</Text>
-        <Select placeholder="Select" value={subject} onChange={e => onSubjectChange(e.target.value)} />
+        <Select placeholder="과목 선택" value={subject} onChange={e => onSubjectChange(e.target.value)}>
+          <option value="">과목 선택</option>
+          {subjectOptions.map((subject) => (
+            <option key={subject} value={subject}>{subject}</option>
+          ))}
+        </Select>
       </Box>
       <Box>
         <Text mb={1}>교수</Text>
-        <Select placeholder="Select" value={professor} onChange={e => onProfessorChange(e.target.value)} />
+        <Select placeholder="교수 선택" value={professor} onChange={e => onProfessorChange(e.target.value)}>
+          <option value="">교수 선택</option>
+          {professorOptions.map((prof) => (
+            <option key={prof} value={prof}>{prof}</option>
+          ))}
+        </Select>
       </Box>
       <Button mt={4} colorScheme="gray" w="40px" h="40px" alignSelf="center">
         →
@@ -119,6 +143,9 @@ const LandingPagePresentation: React.FC<Props> = ({
   onSubjectChange,
   professor,
   onProfessorChange,
+  schoolOptions,
+  subjectOptions,
+  professorOptions,
 }) => (
   <Box minH="100vh" bg="#F5F7FA">
     <TopNav />
@@ -132,6 +159,9 @@ const LandingPagePresentation: React.FC<Props> = ({
         onSubjectChange={onSubjectChange}
         professor={professor}
         onProfessorChange={onProfessorChange}
+        schoolOptions={schoolOptions}
+        subjectOptions={subjectOptions}
+        professorOptions={professorOptions}
         items={items}
       />
       <Box flex="1" p={12} bg="#F5F7FA">
