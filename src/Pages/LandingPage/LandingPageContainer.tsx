@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import LandingPagePresentation, { Item } from './LandingPagepresentation';
+import LandingPagePresentation from './LandingPagepresentation';
+import { Item } from './LandingPagepresentation';
 import { useNavigate } from "react-router-dom";
 //import { useAppContext } from "../../AppContext";
 
 const dummyItems: Item[] = [
-  { id: 1, section: 'Section 30', title: '자바스크립트 이벤트 처리에 대해 질문합니다.' },
-  { id: 2, section: 'Section 30', title: 'React 렌더링 최적화 방법은?' },
-  { id: 3, section: 'Section 30', title: 'Next.js와 Gatsby 차이점 문의' },
+  { id: 1, section: 'Section 30', title: '2025 소프트웨어 공학 기말고사 문제(000교수)' },
+  { id: 2, section: 'Section 30', title: '2023 프로그래밍 언어 중간/기말 문제(000교수)' },
+  { id: 3, section: 'Section 30', title: '2020 경제학원론 기말고사 문제(000교수)' },
 ];
 
 const LandingPageContainer: React.FC = () => {
