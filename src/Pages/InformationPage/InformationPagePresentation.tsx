@@ -3,6 +3,7 @@ import {
   Box, Flex, Button, Text, VStack, HStack, Divider, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure
 } from '@chakra-ui/react';
 import { FaRegImage, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 interface InformationPagePresentationProps {
   title: string;
@@ -10,41 +11,58 @@ interface InformationPagePresentationProps {
   subject: string;
   professor: string;
   detail: string;
+  fileUrl: string;
+  fileName: string;
   onDownload?: () => void;
 }
 
-const TopNav = () => (
-  <Flex
-    as="nav"
-    align="center"
-    justify="space-between"
-    px={8}
-    py={4}
-    bg="white"
-    borderBottom="1px solid #2D3748"
-  >
-    <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg">
-      Logo
-    </Button>
-    <HStack spacing={8}>
-      <Button variant="ghost">문제 게시판</Button>
-      <Button variant="ghost">프로젝트 팀</Button>
-      <Button variant="ghost">Q&A 게시판</Button>
-      <Button variant="ghost">채팅</Button>
-    </HStack>
-    <HStack spacing={2}>
-      <Button colorScheme="gray" variant="outline">
-        LOGIN
+const TopNav = () => {
+  const navigate = useNavigate();
+  return (
+    <Flex
+      as="nav"
+      align="center"
+      justify="space-between"
+      px={8}
+      py={4}
+      bg="white"
+      borderBottom="1px solid #2D3748"
+    >
+      <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg">
+        Logo
       </Button>
-      <Button colorScheme="gray" variant="solid">
-        MyPage
-      </Button>
-    </HStack>
-  </Flex>
-);
+      <HStack spacing={8}>
+        <Button variant="ghost" onClick={() => navigate('/landing')}>문제 게시판</Button>
+        <Button variant="ghost">프로젝트 팀</Button>
+        <Button variant="ghost">Q&A 게시판</Button>
+        <Button variant="ghost">채팅</Button>
+      </HStack>
+      <HStack spacing={2}>
+        <Button colorScheme="gray" variant="outline">
+          LOGIN
+        </Button>
+        <Button colorScheme="gray" variant="solid">
+          MyPage
+        </Button>
+      </HStack>
+    </Flex>
+  );
+};
 
-const InformationPagePresentation: React.FC<InformationPagePresentationProps> = ({ title, school, subject, professor, detail, onDownload }) => {
+const InformationPagePresentation: React.FC<InformationPagePresentationProps> = ({ title, school, subject, professor, detail, fileUrl, fileName, onDownload }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const handleDownload = () => {
+    if (fileUrl) {
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName || 'downloaded_file';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
     <Box minH="100vh" bg="#F5F7FA">
       <TopNav />
@@ -95,7 +113,7 @@ const InformationPagePresentation: React.FC<InformationPagePresentationProps> = 
                   <Text fontSize="sm" color="gray.700">과목: {subject}</Text>
                   <Text fontSize="sm" color="gray.700">교수: {professor}</Text>
                 </VStack>
-                <Button mt={6} colorScheme="gray" w="100%" onClick={onDownload}>
+                <Button mt={6} colorScheme="gray" w="100%" onClick={handleDownload}>
                   Download
                 </Button>
               </Box>
