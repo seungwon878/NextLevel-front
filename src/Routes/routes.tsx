@@ -7,6 +7,10 @@ export const routes: RouteObject[] = [
       path: "/",
       element: <LandingPageContainer />,
     },
+    {
+      path: "/landing",
+      element: <LandingPageContainer />,
+    }
 ]
 
 
