@@ -6,36 +6,59 @@ import { QaPage } from "../Pages/QaPage";
 import { QaInfoPage } from "../Pages/QaInfoPage";
 import { ChatPage } from "../Pages/ChatPage";
 import { ChattingPage } from "../Pages/ChattingPage";
+import { LoginPageContainer } from "../Pages/LoginPage";
+import { SignupPageContainer } from "../Pages/SignupPage";
+import { SignupSuccessContainer } from "../Pages/SignupSuccessPage";
+import { ForgotPasswordContainer } from "../Pages/ForgotPasswordPage";
+import { MyPageContainer } from "../Pages/MyPage";
 
 export const routes: RouteObject[] = [
-    {
-      path: "/",
-      element: <LandingPageContainer />,
-    },
-    {
-      path: "/landing",
-      element: <LandingPageContainer />,
-    },
-    {
-      path: "/information/:id",
-      element: <InformationPage />,
-    },
-    {
-      path: "/qapage",
-      element: <QaPage />,
-    },
-    {
-      path: "/qainfo/:id",
-      element: <QaInfoPage />,
-    },
-    {
-      path: "/chat",
-      element: <ChatPage />,
-    },
-    {
-      path: "/chatting/:id",
-      element: <ChattingPage />,
-    }
-]
-
-
+  {
+    path: "/",
+    element: <LandingPageContainer />,
+  },
+  {
+    path: "/landing",
+    element: <LandingPageContainer />,
+  },
+  {
+    path: "/information/:id",
+    element: <InformationPage />,
+  },
+  {
+    path: "/qapage",
+    element: <QaPage />,
+  },
+  {
+    path: "/qainfo/:id",
+    element: <QaInfoPage />,
+  },
+  {
+    path: "/chat",
+    element: <ChatPage />,
+  },
+  {
+    path: "/chatting/:id",
+    element: <ChattingPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPageContainer />,
+  },
+  {
+    path: "/signup",
+    element: <SignupPageContainer />,
+  },
+  {
+    path: "/signupsuccess",
+    element: <SignupSuccessContainer />,
+  },
+  {
+    path: "/forgot",
+    element: <ForgotPasswordContainer />,
+  },
+  {
+    path: "/mypage",
+    element: <MyPageContainer />,
+  },
+];

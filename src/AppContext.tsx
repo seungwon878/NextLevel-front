@@ -1,7 +1,30 @@
-import { createContext } from "react";
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-export const AppContext = createContext({});
+interface AuthContextType {
+  isAuthenticated: boolean;
+  login: () => void;
+  logout: () => void;
+}
 
-export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-    return <AppContext.Provider value={{}}>{children}</AppContext.Provider>;
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  const login = () => setIsAuthenticated(true);
+  const logout = () => setIsAuthenticated(false);
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
+
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AppProvider');
+  }
+  return context;
+}
