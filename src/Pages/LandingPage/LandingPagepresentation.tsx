@@ -65,7 +65,7 @@ const TopNav = () => {
         <Button variant="ghost" onClick={() => navigate('/landing')}>문제 게시판</Button>
         <Button variant="ghost">프로젝트 팀</Button>
         <Button variant="ghost" onClick={() => navigate('/qapage')}>Q&A 게시판</Button>
-        <Button variant="ghost">채팅</Button>
+        <Button variant="ghost" onClick={() => navigate('/chat')}>채팅</Button>
       </HStack>
       <HStack spacing={2}>
         <Button colorScheme="gray" variant="outline">
