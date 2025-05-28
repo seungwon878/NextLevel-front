@@ -24,7 +24,6 @@ import { useNavigate } from 'react-router-dom';
 
 export interface Item {
   id: number;
-  section: string;
   title: string;
   school: string;
   subject: string;
@@ -144,9 +143,6 @@ const SideBar = ({
         py={8}
         borderRight="1px solid #E2E8F0"
       >
-        <Text fontWeight="bold" color="gray.400" mb={6}>
-          ⓞ Base Components
-        </Text>
         <VStack align="stretch" spacing={4}>
           <Box>
             <Text mb={1}>검색</Text>
@@ -219,7 +215,7 @@ const SideBar = ({
   );
 };
 
-const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
+const TeamProjectPresentation: React.FC<Props & TopNavProps> = ({
   items,
   searchText,
   onSearchTextChange,
@@ -265,9 +261,6 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
             p={8}
             minH="600px"
           >
-            <Text fontWeight="bold" fontSize="lg" mb={4}>
-              Section 30
-            </Text>
             <VStack spacing={8} align="stretch">
               {items.map((item) => (
                 <Box key={item.id}>
@@ -276,7 +269,7 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
                       {item.title}
                     </Text>
                     <HStack>
-                      <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/information/${item.id}`)}>
+                      <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/team/${item.id}`)}>
                         자세히 보기
                       </Button>
                       <Button colorScheme="gray" variant="solid">
@@ -295,4 +288,4 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
   );
 };
 
-export default LandingPagePresentation;
+export default TeamProjectPresentation;

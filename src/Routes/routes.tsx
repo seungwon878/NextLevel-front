@@ -11,6 +11,8 @@ import { SignupPageContainer } from "../Pages/SignupPage";
 import { SignupSuccessContainer } from "../Pages/SignupSuccessPage";
 import { ForgotPasswordContainer } from "../Pages/ForgotPasswordPage";
 import { MyPageContainer } from "../Pages/MyPage";
+import { TeamProjectContainer } from "../Pages/TeamProjectPage";
+import { TeamPage } from "../Pages/TeamPage/";
 
 export const routes: RouteObject[] = [
   {
@@ -60,5 +62,13 @@ export const routes: RouteObject[] = [
   {
     path: "/mypage",
     element: <MyPageContainer />,
+  },
+  {
+    path: "/project",
+    element: <TeamProjectContainer />,
+  },
+  {
+    path: "/team/:id",
+    element: <TeamPage />,
   },
 ];
