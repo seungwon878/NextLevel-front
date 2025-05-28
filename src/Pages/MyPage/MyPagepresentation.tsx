@@ -88,7 +88,7 @@ const SideBar: React.FC = () => (
     borderRight="1px solid #E2E8F0"
   >
     <Text fontWeight="bold" color="gray.400" mb={6}>
-      ⓞ MyPage
+      ⓞ MyPAGE
     </Text>
     <VStack align="stretch" spacing={4}>
       <Button colorScheme="gray" w="100%">

@@ -57,6 +57,10 @@ const LandingPageContainer: React.FC = () => {
   const subjectOptions = Array.from(new Set(items.map(item => item.subject)));
   const professorOptions = Array.from(new Set(items.map(item => item.professor)));
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <LandingPagePresentation
       items={filtered}
@@ -72,7 +76,8 @@ const LandingPageContainer: React.FC = () => {
       subjectOptions={subjectOptions}
       professorOptions={professorOptions}
       isAuthenticated={isAuthenticated}
-      onLogout={logout}
+      onLogout={handleLogout}
+      currentPage="landing"
     />
   );
 };
