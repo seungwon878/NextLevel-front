@@ -49,11 +49,13 @@ interface Props {
 interface TopNavProps {
   isAuthenticated: boolean;
   onLogout: () => void;
+  currentPage: string;
 }
 
 const TopNav: React.FC<TopNavProps> = ({
   isAuthenticated,
-  onLogout
+  onLogout,
+  currentPage
 }) => {
   const navigate = useNavigate();
   return (
@@ -234,6 +236,7 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
   professorOptions,
   isAuthenticated,
   onLogout,
+  currentPage
 }) => {
   const navigate = useNavigate();
   return (
@@ -241,6 +244,7 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
       <TopNav
         isAuthenticated={isAuthenticated}
         onLogout={onLogout}
+        currentPage={currentPage}
       />
       <Flex>
         <SideBar

@@ -1,74 +1,209 @@
 import React, { useState } from 'react';
 import {
-  Box, Flex, Button, Text, VStack, HStack, Divider, Input
+  Box, Flex, Button, Text, VStack, HStack, Divider, Input, Icon, Grid, GridItem,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton,
+  useDisclosure, Avatar
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { FiDownload, FiMessageSquare } from 'react-icons/fi';
+import TopNav from '../../components/TopNav';
+
+interface Comment {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  createdAt: string;
+}
 
 interface QaInfoPresentationProps {
   title: string;
   content: string;
-  comments: string[];
+  comments: Comment[];
+  school: string;
+  subject: string;
+  professor: string;
+  attachment?: {
+    name: string;
+    url: string;
+  };
 }
 
-const TopNav = () => {
-  const navigate = useNavigate();
-  return (
-    <Flex as="nav" align="center" justify="space-between" px={8} py={4} bg="white" borderBottom="1px solid #2D3748">
-      <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg">Logo</Button>
-      <HStack spacing={8}>
-        <Button variant="ghost" onClick={() => navigate('/landing')}>문제 게시판</Button>
-        <Button variant="ghost">프로젝트 팀</Button>
-        <Button variant="ghost" onClick={() => navigate('/qapage')}>Q&A 게시판</Button>
-        <Button variant="ghost" onClick={() => navigate('/chat')}>채팅</Button>
-      </HStack>
-      <HStack spacing={2}>
-        <Button colorScheme="gray" variant="outline">LOGIN</Button>
-        <Button colorScheme="gray" variant="solid">MyPage</Button>
-      </HStack>
-    </Flex>
-  );
-};
-
-const QaInfoPresentation: React.FC<QaInfoPresentationProps> = ({ title, content, comments: initialComments }) => {
-  const [comments, setComments] = useState<string[]>(initialComments);
+const QaInfoPresentation: React.FC<QaInfoPresentationProps> = ({ 
+  title, 
+  content, 
+  comments: initialComments,
+  school,
+  subject,
+  professor,
+  attachment 
+}) => {
+  const [comments, setComments] = useState<Comment[]>(initialComments);
   const [input, setInput] = useState('');
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   const handleAddComment = () => {
     if (input.trim() === '') return;
-    setComments([...comments, input]);
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      content: input,
+      author: {
+        id: 'current-user-id', // TODO: 실제 사용자 ID로 교체
+        name: '사용자',
+        avatar: 'https://bit.ly/dan-abramov'
+      },
+      createdAt: new Date().toISOString()
+    };
+    setComments([...comments, newComment]);
     setInput('');
+  };
+
+  const handleDownload = () => {
+    if (attachment) {
+      window.open(attachment.url, '_blank');
+    }
+  };
+
+  const handleStartChat = (authorId: string, authorName: string) => {
+    // 채팅 페이지로 이동하면서 상대방 정보를 state로 전달
+    navigate('/chat', { 
+      state: { 
+        targetUserId: authorId,
+        targetUserName: authorName
+      }
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
     <Box minH="100vh" bg="#F5F7FA">
-      <TopNav />
+      <TopNav currentPage="qapage" />
       <Flex justify="center" align="center" minH="80vh" p={8}>
-        <Box w="90%" border="3px solid #2D3748" borderRadius="lg" bg="white" p={12}>
-          <Text fontWeight="bold" fontSize="2xl" mb={2}>제목</Text>
-          <Text fontSize="xl" color="gray.800" mb={4}>{title}</Text>
-          <Divider mb={6} />
-          <Flex justify="flex-end" mb={4} gap={2}>
-            <Button colorScheme="gray" variant="solid">채팅</Button>
-          </Flex>
-          <Box mb={8} border="1px solid #CBD5E0" borderRadius="md" bg="white" p={6}>
-            <Text fontSize="md" color="gray.700">{content}</Text>
+        <Box w="90%" maxW="1200px">
+          <Box bg="white" borderRadius="lg" border="3px solid #2D3748" p={8} mb={6}>
+            <VStack align="stretch" spacing={6}>
+              <Text fontWeight="bold" fontSize="3xl" color="gray.800">{title}</Text>
+              <Grid templateColumns="repeat(3, 1fr)" gap={6}>
+                <GridItem>
+                  <Text color="gray.500" fontSize="sm">학교</Text>
+                  <Text fontSize="lg" fontWeight="medium">{school}</Text>
+                </GridItem>
+                <GridItem>
+                  <Text color="gray.500" fontSize="sm">과목</Text>
+                  <Text fontSize="lg" fontWeight="medium">{subject}</Text>
+                </GridItem>
+                <GridItem>
+                  <Text color="gray.500" fontSize="sm">교수</Text>
+                  <Text fontSize="lg" fontWeight="medium">{professor}</Text>
+                </GridItem>
+              </Grid>
+              <Divider />
+              <Box>
+                <Text color="gray.500" fontSize="sm" mb={2}>내용</Text>
+                <Text fontSize="md" color="gray.700" noOfLines={3}>
+                  {content}
+                </Text>
+                <Button 
+                  mt={2} 
+                  colorScheme="gray" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onOpen}
+                >
+                  상세 내용 보기
+                </Button>
+              </Box>
+              {attachment && (
+                <Box>
+                  <Text color="gray.500" fontSize="sm" mb={2}>첨부파일</Text>
+                  <Button
+                    leftIcon={<Icon as={FiDownload} />}
+                    colorScheme="gray"
+                    variant="outline"
+                    onClick={handleDownload}
+                  >
+                    {attachment.name}
+                  </Button>
+                </Box>
+              )}
+            </VStack>
           </Box>
-          <Box border="2px solid #2D3748" borderRadius="md" bg="white" p={4} mt={8}>
-            <Text fontWeight="bold" fontSize="xl" mb={2}>댓글</Text>
-            <Box borderTop="1px solid #CBD5E0" pt={2}>
-              {comments.map((comment, idx) => (
-                <Box key={idx} py={2} borderBottom={idx < comments.length - 1 ? '1px solid #CBD5E0' : 'none'}>
-                  <Text fontSize="md">{comment}</Text>
+
+          <Box bg="white" borderRadius="lg" border="3px solid #2D3748" p={8}>
+            <Text fontWeight="bold" fontSize="xl" mb={4}>댓글</Text>
+            <VStack spacing={4} align="stretch">
+              {comments.map((comment) => (
+                <Box 
+                  key={comment.id} 
+                  p={4} 
+                  bg="gray.50" 
+                  borderRadius="md"
+                  border="1px solid #E2E8F0"
+                >
+                  <HStack spacing={3} mb={2} justify="space-between">
+                    <HStack spacing={3}>
+                      <Avatar size="sm" name={comment.author.name} src={comment.author.avatar} />
+                      <VStack align="start" spacing={0}>
+                        <Text fontWeight="medium">{comment.author.name}</Text>
+                        <Text fontSize="xs" color="gray.500">{formatDate(comment.createdAt)}</Text>
+                      </VStack>
+                    </HStack>
+                    <Button
+                      leftIcon={<Icon as={FiMessageSquare} />}
+                      size="sm"
+                      colorScheme="gray"
+                      variant="outline"
+                      onClick={() => handleStartChat(comment.author.id, comment.author.name)}
+                    >
+                      채팅하기
+                    </Button>
+                  </HStack>
+                  <Text fontSize="md" ml={12}>{comment.content}</Text>
                 </Box>
               ))}
-              <Flex align="center" mt={2} gap={2}>
-                <Input placeholder="답변" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAddComment(); }} />
-                <Button colorScheme="gray" onClick={handleAddComment}>등록</Button>
-              </Flex>
-            </Box>
+              <Box mt={4}>
+                <Flex gap={2}>
+                  <Input 
+                    placeholder="답변을 입력하세요" 
+                    value={input} 
+                    onChange={e => setInput(e.target.value)} 
+                    onKeyDown={e => { if (e.key === 'Enter') handleAddComment(); }}
+                    bg="white"
+                  />
+                  <Button colorScheme="gray" onClick={handleAddComment}>
+                    등록
+                  </Button>
+                </Flex>
+              </Box>
+            </VStack>
           </Box>
         </Box>
       </Flex>
+
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>상세 내용</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <Text whiteSpace="pre-wrap">{content}</Text>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

@@ -47,6 +47,10 @@ const TeamProjectContainer: React.FC = () => {
   const subjectOptions = Array.from(new Set(items.map(item => item.subject)));
   const professorOptions = Array.from(new Set(items.map(item => item.professor)));
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <TeamProjectPresentation
       items={filtered}
@@ -62,7 +66,8 @@ const TeamProjectContainer: React.FC = () => {
       subjectOptions={subjectOptions}
       professorOptions={professorOptions}
       isAuthenticated={isAuthenticated}
-      onLogout={logout}
+      onLogout={handleLogout}
+      currentPage="project"
     />
   );
 };
