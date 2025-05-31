@@ -18,9 +18,10 @@ import {
   ModalFooter,
   Input,
   useDisclosure,
+  Textarea,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { verifyPasswordApi, changePasswordApi, deleteMyAccount } from '../../Apis/gwon/api';
+import { verifyPasswordApi, changePasswordApi, deleteMyAccount, updateProfileApi } from '../../Apis/gwon/api';
 
 interface Profile {
   username: string;
@@ -304,6 +305,21 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
   const { isOpen: pwOpen, onOpen: onPwOpen, onClose: onPwClose } = useDisclosure();
   const { isOpen: delOpen, onOpen: onDelOpen, onClose: onDelClose } = useDisclosure();
   const token = localStorage.getItem('token') || '';
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
+  const [email, setEmail] = useState(profile?.email || '');
+  const [content, setContent] = useState(profile?.content || '');
+  const [image, setImage] = useState<File | null>(null);
+  const [editMsg, setEditMsg] = useState('');
+
+  const handleProfileEdit = async () => {
+    try {
+      await updateProfileApi({ email, content, image, token });
+      setEditMsg('프로필이 성공적으로 수정되었습니다!');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err: any) {
+      setEditMsg(err.message || '프로필 수정 실패');
+    }
+  };
 
   return (
     <Box minH="100vh" bg="#F5F7FA">
@@ -351,6 +367,7 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
                   variant="solid"
                   borderRadius="6px"
                   fontWeight="600"
+                  onClick={onEditOpen}
                 >
                   정보 수정
                 </Button>
@@ -373,6 +390,50 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
       </Flex>
       <PasswordChangeModal isOpen={pwOpen} onClose={onPwClose} token={token} />
       <AccountDeleteModal isOpen={delOpen} onClose={onDelClose} token={token} onLogout={onLogout} />
+      <Modal isOpen={isEditOpen} onClose={onEditClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>프로필 수정</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <Avatar 
+                size="2xl" 
+                src={profile?.profileImageUrl} 
+                name={profile?.username}
+                border="2px solid #2D3748"
+              />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+              />
+              <Input
+                placeholder="이메일"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Textarea
+                placeholder="자기소개"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={5}
+              />
+            </VStack>
+            {editMsg && (
+              <Text color={editMsg.includes('성공') ? 'green.500' : 'red.500'} mt={4}>
+                {editMsg}
+              </Text>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleProfileEdit}>
+              저장
+            </Button>
+            <Button onClick={onEditClose}>취소</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
