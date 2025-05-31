@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Box, Flex, Button, Input, Select, Text, VStack, HStack, Divider, Spacer, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Textarea
+  Box, Flex, Button, Input, Select, Text, VStack, HStack, Divider, Spacer, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Textarea, FormControl, FormLabel
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import TopNav from '../../components/TopNav';
 
 interface Item {
   id: number;
@@ -27,25 +28,6 @@ interface Props {
   professorOptions: string[];
 }
 
-const TopNav = () => {
-  const navigate = useNavigate();
-  return (
-    <Flex as="nav" align="center" justify="space-between" px={8} py={4} bg="white" borderBottom="1px solid #2D3748">
-      <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg">Logo</Button>
-      <HStack spacing={8}>
-        <Button variant="ghost" onClick={() => navigate('/landing')}>문제 게시판</Button>
-        <Button variant="ghost">프로젝트 팀</Button>
-        <Button variant="ghost" onClick={() => navigate('/qapage')}>Q&A 게시판</Button>
-        <Button variant="ghost" onClick={() => navigate('/chat')}>채팅</Button>
-      </HStack>
-      <HStack spacing={2}>
-        <Button colorScheme="gray" variant="outline">LOGIN</Button>
-        <Button colorScheme="gray" variant="solid">MyPage</Button>
-      </HStack>
-    </Flex>
-  );
-};
-
 const SideBar = ({
   searchText,
   onSearchTextChange,
@@ -65,6 +47,13 @@ const SideBar = ({
   const [uploadSubject, setUploadSubject] = useState('');
   const [uploadProfessor, setUploadProfessor] = useState('');
   const [uploadDesc, setUploadDesc] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadFile(e.target.files[0]);
+    }
+  };
 
   const handleUpload = () => {
     if (!uploadTitle || !uploadSchool || !uploadSubject || !uploadProfessor || !uploadDesc) {
@@ -72,13 +61,14 @@ const SideBar = ({
       return;
     }
     alert(
-      `업로드 정보:\n제목: ${uploadTitle}\n학교: ${uploadSchool}\n학과: ${uploadSubject}\n교수명: ${uploadProfessor}\n내용: ${uploadDesc}`
+      `업로드 정보:\n제목: ${uploadTitle}\n학교: ${uploadSchool}\n학과: ${uploadSubject}\n교수명: ${uploadProfessor}\n내용: ${uploadDesc}\n파일: ${uploadFile ? uploadFile.name : '없음'}`
     );
     setUploadTitle('');
     setUploadSchool('');
     setUploadSubject('');
     setUploadProfessor('');
     setUploadDesc('');
+    setUploadFile(null);
     onClose();
   };
 
@@ -136,6 +126,14 @@ const SideBar = ({
               <Input placeholder="학과" value={uploadSubject} onChange={e => setUploadSubject(e.target.value)} />
               <Input placeholder="교수명" value={uploadProfessor} onChange={e => setUploadProfessor(e.target.value)} />
               <Textarea placeholder="내용" value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} />
+              <FormControl>
+                <FormLabel>첨부파일</FormLabel>
+                <Input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.txt,.zip"
+                />
+              </FormControl>
             </VStack>
           </ModalBody>
           <ModalFooter>
@@ -165,7 +163,7 @@ const QaPagePresentation: React.FC<Props> = ({
   const navigate = useNavigate();
   return (
     <Box minH="100vh" bg="#F5F7FA">
-      <TopNav />
+      <TopNav currentPage="qapage" />
       <Flex>
         <SideBar
           searchText={searchText}
@@ -188,10 +186,7 @@ const QaPagePresentation: React.FC<Props> = ({
                 <Box key={item.id}>
                   <Flex align="center" justify="space-between">
                     <Text fontWeight="bold" fontSize="2xl">{item.title}</Text>
-                    <HStack>
-                      <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/qainfo/${item.id}`)}>자세히 보기</Button>
-                      <Button colorScheme="gray" variant="solid" onClick={() => alert('채팅 클릭!')}>채팅</Button>
-                    </HStack>
+                    <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/qainfo/${item.id}`)}>자세히 보기</Button>
                   </Flex>
                   <Divider my={4} />
                 </Box>

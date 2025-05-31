@@ -4,35 +4,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { FaPaperPlane } from 'react-icons/fa';
-
-const TopNav = () => {
-  const navigate = useNavigate();
-  return (
-    <Flex
-      as="nav"
-      align="center"
-      justify="space-between"
-      px={8}
-      py={4}
-      bg="white"
-      borderBottom="1px solid #E2E8F0"
-    >
-      <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg">
-        Logo
-      </Button>
-      <HStack spacing={8}>
-        <Button variant="ghost" onClick={() => navigate('/landing')}>문제 게시판</Button>
-        <Button variant="ghost">프로젝트 팀</Button>
-        <Button variant="ghost" onClick={() => navigate('/qapage')}>Q&A 게시판</Button>
-        <Button variant="ghost" onClick={() => navigate('/chat')}>채팅</Button>
-      </HStack>
-      <HStack spacing={2}>
-        <Button colorScheme="gray" variant="outline">LOGIN</Button>
-        <Button colorScheme="gray" variant="solid">MyPage</Button>
-      </HStack>
-    </Flex>
-  );
-};
+import TopNav from '../../components/TopNav';
 
 interface Message {
   id: number;
@@ -80,7 +52,7 @@ const ChattingPagePresentation: React.FC<ChattingPagePresentationProps> = ({ roo
 
   return (
     <Box minH="100vh" bg="#F5F7FA">
-      <TopNav />
+      <TopNav currentPage="chat" />
       <Flex justify="center" align="center" minH="80vh" p={8}>
         <Box w="100%" maxW="600px" border="3px solid #2D3748" borderRadius="lg" bg="white" p={0} display="flex" flexDirection="column" minH="700px">
           <Box px={8} py={4} borderBottom="1px solid #CBD5E0">

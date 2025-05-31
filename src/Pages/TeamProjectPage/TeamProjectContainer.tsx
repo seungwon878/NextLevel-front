@@ -54,6 +54,7 @@ const TeamProjectContainer: React.FC = () => {
       professorOptions={professorOptions}
       isAuthenticated={isAuthenticated}
       onLogout={logout}
+      currentPage="project"
     />
   );
 };
