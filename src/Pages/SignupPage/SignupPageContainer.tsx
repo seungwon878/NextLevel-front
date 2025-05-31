@@ -1,6 +1,7 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SignupPagepresentation from './SignupPagepresentation';
+import { signupApi } from '../../Apis/gwon/api';
 
 const SignupPageContainer: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -32,42 +33,9 @@ const SignupPageContainer: React.FC = () => {
       setError('이메일 형식이 잘못되었습니다.');
       return;
     }
-
-    const formData = new FormData();
-    formData.append(
-      'request',
-      new Blob(
-        [
-          JSON.stringify({
-            username,
-            password,
-            email
-          })
-        ],
-        { type: "application/json" }
-      )
-    );
-
     try {
       setIsLoading(true);
-      const response = await fetch('http://52.78.159.151:8080/api/members/signup', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-
-      if (!response.ok) {
-        switch (result.statusMessage) {
-          case "DUPLICATED_MEMBER":
-            result.statusMessage = '동일한 아이디가 존재합니다.';
-            break;
-          case "DUPLICATED_EMAIL":
-            result.statusMessage = '동일한 이메일이 존재합니다.';
-            break;
-          default:
-        }
-        throw new Error(result.statusMessage || '회원가입 실패');
-      }
+      await signupApi(email,username,password);
       navigate('/signupsuccess');
     } catch (err: any) {
       setError(err.message);

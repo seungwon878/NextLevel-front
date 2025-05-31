@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
@@ -7,10 +7,31 @@ import {
   VStack,
   HStack,
   Divider,
+  Spinner,
+  Avatar,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Input,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { verifyPasswordApi, changePasswordApi, deleteMyAccount } from '../../Apis/gwon/api';
+
+interface Profile {
+  username: string;
+  email: string;
+  profileImageUrl: string;
+  content: string;
+}
 
 interface MyPagePresentationProps {
+  profile: Profile | null;
+  loading : boolean;
   isAuthenticated: boolean;
   onLogin: () => void;
   onLogout: () => void;
@@ -20,6 +41,8 @@ interface MyPagePresentationProps {
 }
 
 const TopNav: React.FC<MyPagePresentationProps> = ({
+  profile,
+  loading,
   isAuthenticated,
   onLogin,
   onLogout,
@@ -78,7 +101,170 @@ const TopNav: React.FC<MyPagePresentationProps> = ({
   );
 };
 
-const SideBar: React.FC = () => (
+const PasswordChangeModal: React.FC<{ isOpen: boolean; onClose: () => void; token: string }> = ({ isOpen, onClose, token }) => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [step, setStep] = useState<'verify' | 'change'>('verify');
+  const [msg, setMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleVerify = async () => {
+    setIsSubmitting(true);
+    setMsg('');
+    try {
+      await verifyPasswordApi(currentPassword, token);
+      setStep('change');
+      setMsg('');
+    } catch (err: any) {
+      setMsg(err.message || '비밀번호가 일치하지 않습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setIsSubmitting(true);
+    setMsg('');
+    try {
+      await changePasswordApi(newPassword, token);
+      setMsg('비밀번호가 성공적으로 변경되었습니다.');
+      setTimeout(() => {
+        onClose();
+        setStep('verify');
+        setCurrentPassword('');
+        setNewPassword('');
+        setMsg('');
+      }, 1200);
+    } catch (err: any) {
+      setMsg(err.message || '비밀번호 변경 실패');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setStep('verify');
+    setCurrentPassword('');
+    setNewPassword('');
+    setMsg('');
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleModalClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>비밀번호 변경</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          {step === 'verify' ? (
+            <>
+              <Input
+                type="password"
+                placeholder="현재 비밀번호"
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                mb={3}
+              />
+              <Button colorScheme="gray" w="100%" onClick={handleVerify} isLoading={isSubmitting}>
+                현재 비밀번호 확인
+              </Button>
+            </>
+          ) : (
+            <>
+              <Input
+                type="password"
+                placeholder="새 비밀번호"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                mb={3}
+              />
+              <Button colorScheme="gray" w="100%" onClick={handleChangePassword} isLoading={isSubmitting}>
+                변경
+              </Button>
+            </>
+          )}
+          {msg && <Text color={msg.includes('성공') ? 'green.500' : 'red.500'} mt={3} fontSize="sm">{msg}</Text>}
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={handleModalClose}>취소</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+// 회원탈퇴 모달
+const AccountDeleteModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  token: string;
+  onLogout: () => void;
+}> = ({ isOpen, onClose, token, onLogout }) => {
+  const [password, setPassword] = useState('');
+  const [msg, setMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsSubmitting(true);
+    setMsg('');
+    try {
+      await verifyPasswordApi(password, token);
+      await deleteMyAccount(token);
+      setMsg('회원 탈퇴가 완료되었습니다.');
+      setTimeout(() => {
+        onLogout();
+        onClose();
+      }, 1200);
+    } catch (err: any) {
+      setMsg(err.message || '회원 탈퇴에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setPassword('');
+    setMsg('');
+    setIsSubmitting(false);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleModalClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>회원 탈퇴</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Text mb={2} fontSize="sm" color="gray.600">
+            회원 탈퇴를 위해 비밀번호를 입력해주세요.
+          </Text>
+          <Input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            mb={3}
+          />
+          {msg && (
+            <Text color={msg.includes('완료') ? 'green.500' : 'red.500'} mt={2} fontSize="sm">
+              {msg}
+            </Text>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="red" mr={3} onClick={handleDelete} isLoading={isSubmitting}>
+            회원 탈퇴
+          </Button>
+          <Button variant="ghost" onClick={handleModalClose}>취소</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+const SideBar: React.FC<{ onChangePassword: () => void; onDeleteAccount: () => void; onLogout: () => void }> = ({ onChangePassword, onDeleteAccount,onLogout }) => (
   <Box
     w="260px"
     bg="#F5F7FA"
@@ -87,15 +273,15 @@ const SideBar: React.FC = () => (
     py={8}
     borderRight="1px solid #E2E8F0"
   >
-    <Text fontWeight="bold" color="gray.400" mb={6}>
-      ⓞ MyPAGE
-    </Text>
     <VStack align="stretch" spacing={4}>
-      <Button colorScheme="gray" w="100%">
-        내 정보 수정
+      <Button colorScheme="gray" w="100%" onClick={onChangePassword}>
+        비밀번호 수정
       </Button>
-      <Button colorScheme="gray" w="100%">
+      <Button colorScheme="gray" w="100%" onClick={onLogout}>
         로그아웃
+      </Button>
+      <Button colorScheme="red" w="100%" onClick={onDeleteAccount}>
+        회원 탈퇴
       </Button>
     </VStack>
     <Divider my={6} />
@@ -114,11 +300,16 @@ const SideBar: React.FC = () => (
 );
 
 const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
+  const { profile, loading, onLogout } = props;
+  const { isOpen: pwOpen, onOpen: onPwOpen, onClose: onPwClose } = useDisclosure();
+  const { isOpen: delOpen, onOpen: onDelOpen, onClose: onDelClose } = useDisclosure();
+  const token = localStorage.getItem('token') || '';
+
   return (
     <Box minH="100vh" bg="#F5F7FA">
       <TopNav {...props} />
       <Flex>
-        <SideBar />
+        <SideBar onChangePassword={onPwOpen} onDeleteAccount={onDelOpen} onLogout={props.onLogout}/>
         <Box flex="1" p={12} bg="#F5F7FA">
           <Box
             bg="white"
@@ -132,29 +323,27 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
             <VStack spacing={8} align="stretch">
               <Box>
                 <Flex align="center" gap={8}>
-                  <Box
-                    w="96px"
-                    h="96px"
-                    borderRadius="12px"
-                    bg="#e9ecf2"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    fontSize="2.5rem"
-                    color="#bbb"
-                  >
-                    <span role="img" aria-label="profile">🖼️</span>
-                  </Box>
-                  <Box>
-                    <Text fontWeight="bold" fontSize="xl" mb={1}>
-                      홍길동
-                    </Text>
-                    <Text color="gray.600" fontSize="md">
-                      프로필 내용<br />
-                      (자기소개, 취미, 주요 이력 등)<br />
-                      메이저/프로젝트/기타 메시지도 포함
-                    </Text>
-                  </Box>
+                  {loading ? (
+                    <Spinner size="xl" />
+                  ) : (
+                    <>
+                      <Avatar
+                        size="xl"
+                        src={profile?.profileImageUrl}
+                        name={profile?.username}
+                        bg="#e9ecf2"
+                      />
+                      <Box>
+                        <Text fontWeight="bold" fontSize="xl" mb={1}>
+                          {profile?.username}
+                        </Text>
+                        <Text color="gray.600" fontSize="md">
+                          {profile?.email}<br />
+                          {profile?.content && <>{profile.content}<br /></>}
+                        </Text>
+                      </Box>
+                    </>
+                  )}
                 </Flex>
                 <Button
                   mt={6}
@@ -182,6 +371,8 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
           </Box>
         </Box>
       </Flex>
+      <PasswordChangeModal isOpen={pwOpen} onClose={onPwClose} token={token} />
+      <AccountDeleteModal isOpen={delOpen} onClose={onDelClose} token={token} onLogout={onLogout} />
     </Box>
   );
 };
