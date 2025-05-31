@@ -66,7 +66,7 @@ export async function fetchMyProfile(token: string) {
   if (!response.ok) {
     throw new Error(result.message || '회원 정보 조회 실패');
   }
-  return result.content;
+  return result.data;
 }
 
 export interface TeamProjectItem {
@@ -129,25 +129,27 @@ export async function changePasswordApi(newPassword: string, token: string) {
 
 export async function updateProfileApi({
   email,
-  bio,
+  content,
   image,
   token,
 }: {
   email?: string;
-  bio?: string;
+  content?: string;
   image?: File | null;
   token: string;
 }) {
   const formData = new FormData();
-  if (email) formData.append('email', email);
-  if (bio) formData.append('bio', bio);
   if (image) formData.append('image', image);
+  formData.append('image', new Blob());
+  const requestBody = { email, content };
+  formData.append(
+    'request',
+    new Blob([JSON.stringify(requestBody)], { type: 'application/json' })
+  );
 
   const res = await fetch('http://52.78.159.151:8080/api/members/me', {
     method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    headers: { 'Authorization': `Bearer ${token}` },
     body: formData,
   });
   const data = await res.json();
@@ -156,6 +158,7 @@ export async function updateProfileApi({
   }
   return data;
 }
+
 
 export async function verifyPasswordApi(currentPassword: string, token: string) {
   const res = await fetch(

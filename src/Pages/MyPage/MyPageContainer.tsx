@@ -28,7 +28,7 @@ const MyPageContainer: React.FC = (props) => {
       .then(data => setProfile(data))
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isAuthenticated]);
   
   if (!isAuthenticated) {
     return <Navigate to="/landing" replace />;
