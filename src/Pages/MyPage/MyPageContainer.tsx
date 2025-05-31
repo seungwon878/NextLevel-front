@@ -1,12 +1,35 @@
-import React from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../AppContext';
 import MyPagePresentation from './MyPagepresentation';
+import { fetchMyProfile } from '../../Apis/gwon/api';
+import { useNavigate, Navigate } from 'react-router-dom';
 
-const MyPageContainer: React.FC = () => {
+interface Profile {
+  username: string;
+  email: string;
+  role: string;
+  profileImageUrl: string;
+  content: string;
+}
+
+const MyPageContainer: React.FC = (props) => {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    fetchMyProfile(token)
+      .then(data => setProfile(data))
+      .catch(() => setProfile(null))
+      .finally(() => setLoading(false));
+  }, []);
+  
   if (!isAuthenticated) {
     return <Navigate to="/landing" replace />;
   }
@@ -31,9 +54,10 @@ const MyPageContainer: React.FC = () => {
     navigate('/landing');
   };
 
-  // 추후 프로필/바로가기 등 실제 데이터는 props로 내려주면 됨
   return (
     <MyPagePresentation
+      profile={profile}
+      loading={loading}
       isAuthenticated={isAuthenticated}
       onLogin={handleLogin}
       onLogout={handleLogout}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AppContext';
 import LoginPagePresentation from './LoginPagepresentation';
+import { loginApi } from '../../Apis/gwon/api'
 
 export interface LoginFormData {
   username: string;
@@ -37,30 +38,6 @@ const LoginPageContainer: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch('http://52.78.159.151:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username,
-          password
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        switch (result.statusMessage) {
-          case "NOT_FOUND":
-            result.statusMessage = '존재하지 않는 아이디입니다.';
-            break;
-          case "BAD_CREDENTIALS":
-            result.statusMessage = '아이디와 비밀번호가 일치하지 않습니다.';
-            break;
-          default:
-        }
-        throw new Error(result.statusMessage || '로그인 실패');
-      }
-      alert('로그인 성공!');
       if (remember) {
         localStorage.setItem('username', username);
         localStorage.setItem('rememberMe', 'true');
@@ -68,7 +45,7 @@ const LoginPageContainer: React.FC = () => {
         localStorage.removeItem('username');
         localStorage.setItem('rememberMe', 'false');
       }
-
+      const result = await loginApi(username, password);
       login();
       navigate('/landing');
     } catch (err: any) {
