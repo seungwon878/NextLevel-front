@@ -3,34 +3,7 @@ import LandingPagePresentation from './LandingPagepresentation';
 import { Item } from './LandingPagepresentation';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../AppContext';
-//import { useAppContext } from "../../AppContext";
-
-const dummyItems: Item[] = [
-  {
-    id: 1,
-    section: 'Section 30',
-    title: '2025 소프트웨어 공학 기말고사 문제(홍길동교수)',
-    school: '서울대학교',
-    subject: '소프트웨어 공학',
-    professor: '홍길동'
-  },
-  {
-    id: 2,
-    section: 'Section 30',
-    title: '2023 프로그래밍 언어 중간/기말 문제(이순신교수)',
-    school: '고려대학교',
-    subject: '프로그래밍 언어',
-    professor: '이순신'
-  },
-  {
-    id: 3,
-    section: 'Section 30',
-    title: '2020 경제학원론 기말고사 문제(김철수교수)',
-    school: '연세대학교',
-    subject: '경제학원론',
-    professor: '김철수'
-  },
-];
+import { getAllProblemPosts, searchProblemPosts, ProblemPost } from '../../Apis/han/problemPostApi';
 
 const LandingPageContainer: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -40,17 +13,53 @@ const LandingPageContainer: React.FC = () => {
   const [professor, setProfessor] = useState('');
   const { isAuthenticated, logout } = useAuth();
 
+  const fetchProblemPosts = async () => {
+    try {
+      const response = await getAllProblemPosts();
+      if (response.success) {
+        const transformedItems: Item[] = response.data.content.map((post: ProblemPost) => ({
+          id: parseInt(post.problemDataUrl.split('/').pop()?.split('_')[0] || '0'),
+          section: 'Section 30',
+          title: post.title,
+          school: post.school,
+          subject: post.subject,
+          professor: post.professorName
+        }));
+        setItems(transformedItems);
+      }
+    } catch (error) {
+      console.error('문제 게시글을 불러오는데 실패했습니다:', error);
+    }
+  };
+
   useEffect(() => {
-    // TODO: 실제 API 호출 로직으로 교체
-    setItems(dummyItems);
+    fetchProblemPosts();
   }, []);
 
-  const filtered = items.filter(item =>
-    item.title.includes(searchText) &&
-    (school === '' || item.school === school) &&
-    (subject === '' || item.subject === subject) &&
-    (professor === '' || item.professor === professor)
-  );
+  const handleSearch = async () => {
+    try {
+      const response = await searchProblemPosts({
+        title: searchText || undefined,
+        school: school || undefined,
+        subject: subject || undefined,
+        professorName: professor || undefined
+      });
+      
+      if (response.success) {
+        const transformedItems: Item[] = response.data.content.map((post: ProblemPost) => ({
+          id: parseInt(post.problemDataUrl.split('/').pop()?.split('_')[0] || '0'),
+          section: 'Section 30',
+          title: post.title,
+          school: post.school,
+          subject: post.subject,
+          professor: post.professorName
+        }));
+        setItems(transformedItems);
+      }
+    } catch (error) {
+      console.error('검색에 실패했습니다:', error);
+    }
+  };
 
   // 중복 없는 학교, 과목, 교수 목록 추출
   const schoolOptions = Array.from(new Set(items.map(item => item.school)));
@@ -63,7 +72,7 @@ const LandingPageContainer: React.FC = () => {
 
   return (
     <LandingPagePresentation
-      items={filtered}
+      items={items}
       searchText={searchText}
       onSearchTextChange={setSearchText}
       school={school}
@@ -78,6 +87,8 @@ const LandingPageContainer: React.FC = () => {
       isAuthenticated={isAuthenticated}
       onLogout={handleLogout}
       currentPage="landing"
+      onSearch={handleSearch}
+      onUploadSuccess={fetchProblemPosts}
     />
   );
 };

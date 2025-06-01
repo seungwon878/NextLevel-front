@@ -21,6 +21,7 @@ import {
   Textarea
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { createProblemPost } from '../../Apis/han/problemPostApi';
 
 export interface Item {
   id: number;
@@ -44,6 +45,11 @@ interface Props {
   schoolOptions: string[];
   subjectOptions: string[];
   professorOptions: string[];
+  isAuthenticated: boolean;
+  onLogout: () => void;
+  currentPage: string;
+  onSearch: () => void;
+  onUploadSuccess: () => void;
 }
 
 interface TopNavProps {
@@ -104,6 +110,12 @@ const SideBar = ({
   schoolOptions,
   subjectOptions,
   professorOptions,
+  onSearch,
+  items,
+  isAuthenticated,
+  onLogout,
+  currentPage,
+  onUploadSuccess
 }: Props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -112,6 +124,8 @@ const SideBar = ({
   const [uploadSubject, setUploadSubject] = useState('');
   const [uploadProfessor, setUploadProfessor] = useState('');
   const [uploadDesc, setUploadDesc] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -119,21 +133,52 @@ const SideBar = ({
     }
   };
 
-  const handleUpload = () => {
+  const handleUploadClick = () => {
+    if (!isAuthenticated) {
+      alert('로그인 후 이용 가능합니다.');
+      navigate('/login');
+      return;
+    }
+    onOpen();
+  };
+
+  const handleUpload = async () => {
     if (!selectedFile || !uploadTitle || !uploadSchool || !uploadSubject || !uploadProfessor) {
       alert('모든 정보를 입력하고 파일을 선택하세요.');
       return;
     }
-    alert(
-      `업로드 정보:\n제목: ${uploadTitle}\n학교: ${uploadSchool}\n과목: ${uploadSubject}\n교수: ${uploadProfessor}\n설명: ${uploadDesc}\n파일: ${selectedFile.name}`
-    );
-    setSelectedFile(null);
-    setUploadTitle('');
-    setUploadSchool('');
-    setUploadSubject('');
-    setUploadProfessor('');
-    setUploadDesc('');
-    onClose();
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('title', uploadTitle);
+      formData.append('content', uploadDesc);
+      formData.append('professorName', uploadProfessor);
+      formData.append('school', uploadSchool);
+      formData.append('subject', uploadSubject);
+      formData.append('file', selectedFile);
+
+      const response = await createProblemPost(formData);
+      
+      if (response.success) {
+        alert('업로드가 완료되었습니다.');
+        setSelectedFile(null);
+        setUploadTitle('');
+        setUploadSchool('');
+        setUploadSubject('');
+        setUploadProfessor('');
+        setUploadDesc('');
+        onClose();
+        onUploadSuccess();
+      } else {
+        alert('업로드에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('업로드 중 오류 발생:', error);
+      alert('업로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -181,12 +226,18 @@ const SideBar = ({
               ))}
             </Select>
           </Box>
-          <Button mt={4} colorScheme="gray" w="40px" h="40px" alignSelf="center">
+          <Button mt={4} colorScheme="gray" w="40px" h="40px" alignSelf="center" onClick={onSearch}>
             →
           </Button>
         </VStack>
         <Spacer />
-        <Button mt={16} colorScheme="gray" w="100%" onClick={onOpen}>
+        <Button 
+          mt={16} 
+          colorScheme="gray" 
+          w="100%" 
+          onClick={handleUploadClick}
+          _hover={{ bg: isAuthenticated ? 'gray.600' : 'gray.400' }}
+        >
           업로드
         </Button>
       </Box>
@@ -210,7 +261,13 @@ const SideBar = ({
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="gray" mr={3} onClick={handleUpload}>
+            <Button 
+              colorScheme="gray" 
+              mr={3} 
+              onClick={handleUpload}
+              isLoading={isUploading}
+              loadingText="업로드 중..."
+            >
               업로드
             </Button>
             <Button variant="ghost" onClick={onClose}>취소</Button>
@@ -236,7 +293,9 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
   professorOptions,
   isAuthenticated,
   onLogout,
-  currentPage
+  currentPage,
+  onSearch,
+  onUploadSuccess
 }) => {
   const navigate = useNavigate();
   return (
@@ -259,7 +318,12 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
           schoolOptions={schoolOptions}
           subjectOptions={subjectOptions}
           professorOptions={professorOptions}
+          onSearch={onSearch}
           items={items}
+          isAuthenticated={isAuthenticated}
+          onLogout={onLogout}
+          currentPage={currentPage}
+          onUploadSuccess={onUploadSuccess}
         />
         <Box flex="1" p={12} bg="#F5F7FA">
           <Box
