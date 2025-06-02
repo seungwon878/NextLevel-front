@@ -217,6 +217,7 @@ const SideBar = ({
               value={school} 
               onChange={e => onSchoolChange(e.target.value)}
             >
+              <option value="">학교 선택</option>
               {schoolOptions.map((school) => (
                 <option key={school} value={school}>{school}</option>
               ))}
@@ -229,6 +230,7 @@ const SideBar = ({
               value={subject} 
               onChange={e => onSubjectChange(e.target.value)}
             >
+              <option value="">과목 선택</option>
               {subjectOptions.map((subject) => (
                 <option key={subject} value={subject}>{subject}</option>
               ))}
@@ -241,6 +243,7 @@ const SideBar = ({
               value={professor} 
               onChange={e => onProfessorChange(e.target.value)}
             >
+              <option value="">교수 선택</option>
               {professorOptions.map((prof) => (
                 <option key={prof} value={prof}>{prof}</option>
               ))}
