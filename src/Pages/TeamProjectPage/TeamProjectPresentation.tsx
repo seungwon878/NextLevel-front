@@ -9,7 +9,6 @@ import {
   VStack,
   HStack,
   Divider,
-  Spacer,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -21,13 +20,16 @@ import {
   Textarea
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { createTeamRecruit } from '../../Apis/gwon/api';
 
+// props 타입 정의
 export interface Item {
   id: number;
   title: string;
+  content: string;
   school: string;
-  subject: string;
-  professor: string;
+  department: string;
+  createdAt: string;
 }
 
 interface Props {
@@ -36,13 +38,11 @@ interface Props {
   onSearchTextChange: (v: string) => void;
   school: string;
   onSchoolChange: (v: string) => void;
-  subject: string;
-  onSubjectChange: (v: string) => void;
-  professor: string;
-  onProfessorChange: (v: string) => void;
+  department: string;
+  onDepartmentChange: (v: string) => void;
+  onSearch: () => void;
   schoolOptions: string[];
-  subjectOptions: string[];
-  professorOptions: string[];
+  departmentOptions: string[];
 }
 
 interface TopNavProps {
@@ -78,7 +78,7 @@ const TopNav: React.FC<TopNavProps> = ({
         {isAuthenticated ? (
           <>
             <Button colorScheme="gray" variant="outline" onClick={onLogout}>LOGOUT</Button>
-            <Button colorScheme="gray" variant="solid" onClick={() => navigate('/mypage')}>MyPage</Button>
+            <Button colorScheme="gray" variant="solid" onClick={() => navigate('/mypage')}>MYPAGE</Button>
           </>
         ) : (
           <>
@@ -96,45 +96,48 @@ const SideBar = ({
   onSearchTextChange,
   school,
   onSchoolChange,
-  subject,
-  onSubjectChange,
-  professor,
-  onProfessorChange,
+  department,
+  onDepartmentChange,
+  onSearch,
   schoolOptions,
-  subjectOptions,
-  professorOptions,
+  departmentOptions,
 }: Props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadSchool, setUploadSchool] = useState('');
-  const [uploadSubject, setUploadSubject] = useState('');
-  const [uploadProfessor, setUploadProfessor] = useState('');
+  const [uploadDepartment, setUploadDepartment] = useState('');
   const [uploadDesc, setUploadDesc] = useState('');
+  const [uploadMsg, setUploadMsg] = useState('');
+  const token = localStorage.getItem('token') || '';
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
-  const handleUpload = () => {
-    if (!selectedFile || !uploadTitle || !uploadSchool || !uploadSubject || !uploadProfessor) {
-      alert('모든 정보를 입력하고 파일을 선택하세요.');
+  const handleUpload = async () => {
+    if (!uploadTitle || !uploadSchool || !uploadDepartment || !uploadDesc) {
+      setUploadMsg('모든 정보를 입력하세요.');
       return;
     }
-    alert(
-      `업로드 정보:\n제목: ${uploadTitle}\n학교: ${uploadSchool}\n과목: ${uploadSubject}\n교수: ${uploadProfessor}\n설명: ${uploadDesc}\n파일: ${selectedFile.name}`
-    );
-    setSelectedFile(null);
-    setUploadTitle('');
-    setUploadSchool('');
-    setUploadSubject('');
-    setUploadProfessor('');
-    setUploadDesc('');
-    onClose();
+    try {
+      await createTeamRecruit({
+        title: uploadTitle,
+        content: uploadDesc,
+        department: uploadDepartment,
+        school: uploadSchool,
+        token,
+      });
+      setUploadMsg('팀 모집이 성공적으로 등록되었습니다!');
+      setTimeout(() => {
+        setUploadTitle('');
+        setUploadSchool('');
+        setUploadDepartment('');
+        setUploadDesc('');
+        setUploadMsg('');
+        onClose();
+        window.location.reload();
+      }, 1200);
+    } catch (err: any) {
+      setUploadMsg(err.message || '팀 모집 업로드 실패');
+    }
   };
-
+  // 업로드 모달 등 기존 코드 유지
   return (
     <>
       <Box
@@ -148,62 +151,61 @@ const SideBar = ({
         <VStack align="stretch" spacing={4}>
           <Box>
             <Text mb={1}>검색</Text>
-            <Input placeholder="검색" value={searchText} onChange={e => onSearchTextChange(e.target.value)} />
+            <Input
+              placeholder="검색"
+              value={searchText}
+              onChange={e => onSearchTextChange(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') onSearch(); }} // 엔터로도 검색
+            />
           </Box>
           <Box>
             <Text mb={1}>학교</Text>
             <Select placeholder="학교 선택" value={school} onChange={e => onSchoolChange(e.target.value)}>
-              <option value="">학교 선택</option>
               {schoolOptions.map((school) => (
                 <option key={school} value={school}>{school}</option>
               ))}
             </Select>
           </Box>
           <Box>
-            <Text mb={1}>과목</Text>
-            <Select placeholder="과목 선택" value={subject} onChange={e => onSubjectChange(e.target.value)}>
-              <option value="">과목 선택</option>
-              {subjectOptions.map((subject) => (
-                <option key={subject} value={subject}>{subject}</option>
+            <Text mb={1}>학과</Text>
+            <Select placeholder="학과 선택" value={department} onChange={e => onDepartmentChange(e.target.value)}>
+              {departmentOptions.map((dept) => (
+                <option key={dept} value={dept}>{dept}</option>
               ))}
             </Select>
           </Box>
-          <Box>
-            <Text mb={1}>교수</Text>
-            <Select placeholder="교수 선택" value={professor} onChange={e => onProfessorChange(e.target.value)}>
-              <option value="">교수 선택</option>
-              {professorOptions.map((prof) => (
-                <option key={prof} value={prof}>{prof}</option>
-              ))}
-            </Select>
-          </Box>
-          <Button mt={4} colorScheme="gray" w="40px" h="40px" alignSelf="center">
+        <Button
+            mt={4}
+            colorScheme="gray"
+            w="40px"
+            h="40px"
+            alignSelf="center"
+            onClick={onSearch}
+          >
             →
           </Button>
         </VStack>
-        <Spacer />
         <Button mt={16} colorScheme="gray" w="100%" onClick={onOpen}>
-          업로드
+              업로드
         </Button>
       </Box>
-      {/* 업로드 모달 */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>파일 업로드</ModalHeader>
+          <ModalHeader>팀 모집 업로드</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={3} align="stretch">
               <Input placeholder="제목" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} />
               <Input placeholder="학교" value={uploadSchool} onChange={e => setUploadSchool(e.target.value)} />
-              <Input placeholder="과목" value={uploadSubject} onChange={e => setUploadSubject(e.target.value)} />
-              <Input placeholder="교수" value={uploadProfessor} onChange={e => setUploadProfessor(e.target.value)} />
+              <Input placeholder="학과" value={uploadDepartment} onChange={e => setUploadDepartment(e.target.value)} />
               <Textarea placeholder="설명" value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} />
-              <Input type="file" onChange={handleFileChange} />
-              {selectedFile && (
-                <Text fontSize="sm" color="gray.600">선택된 파일: {selectedFile.name}</Text>
-              )}
             </VStack>
+            {uploadMsg && (
+                <Text color={uploadMsg.includes('성공') ? 'green.500' : 'red.500'} mt={2} fontSize="sm">
+                  {uploadMsg}
+                </Text>
+              )}
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="gray" mr={3} onClick={handleUpload}>
@@ -223,13 +225,11 @@ const TeamProjectPresentation: React.FC<Props & TopNavProps> = ({
   onSearchTextChange,
   school,
   onSchoolChange,
-  subject,
-  onSubjectChange,
-  professor,
-  onProfessorChange,
+  department,
+  onDepartmentChange,
+  onSearch,
   schoolOptions,
-  subjectOptions,
-  professorOptions,
+  departmentOptions,
   isAuthenticated,
   onLogout,
   currentPage
@@ -244,18 +244,16 @@ const TeamProjectPresentation: React.FC<Props & TopNavProps> = ({
       />
       <Flex>
         <SideBar
+          items={items}
           searchText={searchText}
           onSearchTextChange={onSearchTextChange}
           school={school}
           onSchoolChange={onSchoolChange}
-          subject={subject}
-          onSubjectChange={onSubjectChange}
-          professor={professor}
-          onProfessorChange={onProfessorChange}
+          department={department}
+          onDepartmentChange={onDepartmentChange}
+          onSearch={onSearch}
           schoolOptions={schoolOptions}
-          subjectOptions={subjectOptions}
-          professorOptions={professorOptions}
-          items={items}
+          departmentOptions={departmentOptions}
         />
         <Box flex="1" p={12} bg="#F5F7FA">
           <Box
