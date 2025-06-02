@@ -69,49 +69,6 @@ export async function fetchMyProfile(token: string) {
   return result.data;
 }
 
-export interface TeamProjectItem {
-  id: number;
-  title: string;
-  school: string;
-  subject: string;
-  professor: string;
-  createdAt: string;
-}
-
-export async function fetchTeamProjects(
-  searchText: string,
-  page: number = 0,
-  size: number = 10,
-  sort: string = 'createdAt,desc'
-): Promise<TeamProjectItem[]> {
-  try {
-    const query = new URLSearchParams({
-      page: page.toString(),
-      size: size.toString(),
-      sort,
-      kw: searchText,
-    }).toString();
-
-    const response = await fetch(`http://52.78.159.151:8080/api/team-recruits?${query}`);
-    
-    if (!response.ok) {
-      throw new Error('데이터 불러오기 실패');
-    }
-
-    const data = await response.json();
-    return data.content.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      school: item.school,
-      subject: item.department,
-      professor: item.author,
-      createdAt: item.createdAt,
-    }));
-  } catch (error) {
-    throw new Error('데이터를 불러올 수 없습니다.');
-  }
-}
-
 // 비밀번호 변경
 export async function changePasswordApi(newPassword: string, token: string) {
   const res = await fetch(`http://52.78.159.151:8080/api/members/me/change-password?newPassword=${encodeURIComponent(newPassword)}`, {
@@ -189,4 +146,125 @@ export async function deleteMyAccount(token: string) {
     throw new Error(result.message || '회원 탈퇴에 실패했습니다.');
   }
   return result;
+}
+
+// src/Apis/gwon/api.ts
+export async function fetchTeamProjects({
+  kw = '',
+  page = 0,
+  size = 10,
+  sort = 'createdAt,desc',
+}: {
+  kw?: string;
+  page?: number;
+  size?: number;
+  sort?: string;
+}) {
+  const params = new URLSearchParams();
+  if (kw) params.append('kw', kw);
+  params.append('page', String(page));
+  params.append('size', String(size));
+  params.append('sort', sort);
+
+  const response = await fetch(`http://52.78.159.151:8080/api/team-recruits?${params.toString()}`);
+  if (!response.ok) throw new Error('데이터 불러오기 실패');
+  const data = await response.json();
+  return data.content.map((item: any) => ({
+    id: item.id,
+    title: item.title,
+    content: item.content,
+    author: item.author,
+    school: item.school,
+    department: item.department,
+    createdAt: item.createdAt,
+  }));
+}
+
+export async function createTeamRecruit({
+  title,
+  content,
+  department,
+  school,
+  token,
+}: {
+  title: string;
+  content: string;
+  department: string;
+  school: string;
+  token: string;
+}) {
+  const res = await fetch('http://52.78.159.151:8080/api/team-recruits', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ title, content, department, school }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || '팀 모집 업로드 실패');
+  }
+  return res.json();
+}
+
+export interface TeamProjectDetail {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  department: string;
+  school: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function fetchTeamProjectDetail(id: string | number): Promise<TeamProjectDetail> {
+  const response = await fetch(`http://52.78.159.151:8080/api/team-recruits/${id}`);
+  if (!response.ok) throw new Error('데이터 불러오기 실패');
+  return response.json();
+}
+
+export async function updateTeamProject(
+  id: string | number,
+  {
+    title,
+    content,
+    department,
+    school,
+    token,
+  }: {
+    title: string;
+    content: string;
+    department: string;
+    school: string;
+    token: string;
+  }
+) {
+  const res = await fetch(`http://52.78.159.151:8080/api/team-recruits/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ title, content, department, school }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || '게시글 수정 실패');
+  }
+  return res.json();
+}
+
+export async function deleteTeamProject(id: string | number, token: string) {
+  const res = await fetch(`http://52.78.159.151:8080/api/team-recruits/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || '게시글 삭제 실패');
+  }
 }

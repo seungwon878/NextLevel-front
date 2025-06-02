@@ -84,7 +84,7 @@ const TopNav: React.FC<MyPagePresentationProps> = ({
               LOGOUT
             </Button>
             <Button colorScheme="gray" variant="solid" onClick={onGoMyPage}>
-              MyPage
+              MYPAGE
             </Button>
           </>
         ) : (

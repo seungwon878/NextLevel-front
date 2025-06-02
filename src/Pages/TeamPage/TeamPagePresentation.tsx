@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Box, Flex, Button, Text, VStack, HStack, Badge, Divider
+  Box, Flex, Button, Text, VStack, HStack, Badge, Divider, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton,
+  ModalBody, ModalFooter, Input, Textarea, useDisclosure, useToast
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,24 +9,23 @@ interface TeamPagePresentationProps {
   title: string;
   school: string;
   department: string;
-  professor: string;
-  courseName: string;
-  semester: string;
-  currentMembers: number;
-  totalMembers: number;
-  recruitmentField: string;
-  description: string;
-  contact: string;
-  deadline: string;
-  status: string;
-}
-
-interface TopNavProps {
+  author: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  isAuthor: boolean;
+  onUpdate: (data: {
+    title: string;
+    content: string;
+    department: string;
+    school: string;
+  }) => Promise<void>;
+  onDelete: () => Promise<void>;
   isAuthenticated: boolean;
   onLogout: () => void;
 }
 
-const TopNav: React.FC<TopNavProps> = ({
+const TopNav: React.FC<Pick<TeamPagePresentationProps, 'isAuthenticated' | 'onLogout'>> = ({
   isAuthenticated,
   onLogout
 }) => {
@@ -64,154 +64,159 @@ const TopNav: React.FC<TopNavProps> = ({
   );
 };
 
-const TeamPagePresentation: React.FC<TeamPagePresentationProps & TopNavProps> = ({
+const TeamPagePresentation: React.FC<TeamPagePresentationProps> = ({
   title,
   school,
   department,
-  professor,
-  courseName,
-  semester,
-  currentMembers,
-  totalMembers,
-  recruitmentField,
-  description,
-  contact,
-  deadline,
-  status,
+  author,
+  content,
+  createdAt,
+  updatedAt,
+  isAuthor,
+  onUpdate,
+  onDelete,
   isAuthenticated,
   onLogout,
 }) => {
+  const [editTitle, setEditTitle] = useState(title);
+  const [editContent, setEditContent] = useState(content);
+  const [editSchool, setEditSchool] = useState(school);
+  const [editDepartment, setEditDepartment] = useState(department);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
   const navigate = useNavigate();
+
+  const handleSave = async () => {
+    try {
+      await onUpdate({
+        title: editTitle,
+        content: editContent,
+        school: editSchool,
+        department: editDepartment,
+      });
+      toast({
+        title: '수정 완료',
+        status: 'success',
+        duration: 2000,
+      });
+      onClose();
+    } catch (err) {
+      toast({
+        title: '수정 실패',
+        description: err instanceof Error ? err.message : '다시 시도해 주세요',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      try {
+        await onDelete();
+        toast({
+          title: '삭제 완료',
+          status: 'success',
+          duration: 2000,
+        });
+      } catch (err) {
+        toast({
+          title: '삭제 실패',
+          description: err instanceof Error ? err.message : '다시 시도해 주세요',
+          status: 'error',
+          duration: 3000,
+        });
+      }
+    }
+  };
 
   return (
     <Box minH="100vh" bg="#F5F7FA">
-      <TopNav
-        isAuthenticated={isAuthenticated}
-        onLogout={onLogout}
-      />
+      <TopNav isAuthenticated={isAuthenticated} onLogout={onLogout} />
       <Flex justify="center" align="flex-start" p={8} pt={12}>
         <Box
           w="90%"
-          maxW="1200px"
+          maxW="800px"
           border="3px solid #2D3748"
           borderRadius="lg"
           bg="white"
           p={8}
         >
-          <Flex gap={8} align="stretch">
-            {/* 왼쪽 프로젝트 정보 */}
-            <Box flex="2" pr={4}>
-              <VStack align="stretch" spacing={4}>
-                <HStack mb={2}>
-                  <Badge colorScheme={status === '모집중' ? 'green' : 'gray'} fontSize="sm">
-                    {status}
-                  </Badge>
-                  <Badge colorScheme="blue" fontSize="sm">
-                    {recruitmentField}
-                  </Badge>
-                </HStack>
-                
-                <Text fontSize="2xl" fontWeight="bold" lineHeight="1.3">
-                  {title}
-                </Text>
-                
-                <Box bg="blue.50" p={4} borderRadius="md" border="1px solid #E2E8F0">
-                  <VStack align="stretch" spacing={2}>
-                    <HStack justify="space-between">
-                      <Text fontWeight="600" color="blue.700">🏫 {school}</Text>
-                      <Text fontSize="sm" color="gray.600">{semester}</Text>
-                    </HStack>
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.700">📚 {courseName}</Text>
-                      <Text fontSize="sm" color="gray.700">👨‍🏫 {professor} 교수님</Text>
-                    </HStack>
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.700">🎓 {department}</Text>
-                      <Text fontSize="sm" color="blue.600" fontWeight="600">
-                        👥 {currentMembers}/{totalMembers}명
-                      </Text>
-                    </HStack>
-                  </VStack>
-                </Box>
-
-                <Box
-                  bg="gray.50"
-                  p={6}
-                  borderRadius="md"
-                  border="1px solid #E2E8F0"
-                  flex="1"
-                >
-                  <Text fontSize="md" lineHeight="1.6" whiteSpace="pre-line">
-                    {description}
-                  </Text>
-                </Box>
-
-                <HStack spacing={3} mt={6}>
-                  <Button variant="outline" colorScheme="gray" size="lg">
-                    채팅
+          <VStack align="stretch" spacing={4}>
+            <Text fontSize="2xl" fontWeight="bold">{title}</Text>
+            <HStack>
+              <Badge colorScheme="blue">{school}</Badge>
+              <Badge colorScheme="green">{department}</Badge>
+              <Badge colorScheme="gray">{author}</Badge>
+            </HStack>
+            <Divider />
+            <Text color="gray.600" fontSize="sm">
+              작성일: {new Date(createdAt).toLocaleString()}
+            </Text>
+            <Text color="gray.600" fontSize="sm">
+              수정일: {new Date(updatedAt).toLocaleString()}
+            </Text>
+            <Divider />
+            <Text fontSize="md" whiteSpace="pre-line">{content}</Text>
+            <HStack spacing={3} mt={6}>
+              {isAuthor && isAuthenticated && (
+                <>
+                  <Button colorScheme="blue" onClick={onOpen}>
+                    수정
                   </Button>
-                  <Button variant="ghost" onClick={() => navigate('/project')}>
-                    목록으로
+                  <Button colorScheme="red" onClick={handleDelete}>
+                    삭제
                   </Button>
-                </HStack>
-              </VStack>
-            </Box>
-
-            {/* 오른쪽 요약 정보 */}
-            <Box flex="1" pl={4}>
-              <VStack spacing={4} align="stretch">
-                <Box
-                  bg="gray.50"
-                  border="2px solid #E2E8F0"
-                  borderRadius="md"
-                  p={6}
-                >
-                  <Text fontWeight="bold" fontSize="lg" mb={4} textAlign="center">
-                    📋 팀 모집 정보
-                  </Text>
-                  
-                  <VStack spacing={3} align="stretch">
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.600">모집 분야</Text>
-                      <Text fontSize="sm" fontWeight="600">{recruitmentField}</Text>
-                    </HStack>
-                    <Divider />
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.600">현재 인원</Text>
-                      <Text fontSize="sm" fontWeight="600">{currentMembers}명</Text>
-                    </HStack>
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.600">목표 인원</Text>
-                      <Text fontSize="sm" fontWeight="600">{totalMembers}명</Text>
-                    </HStack>
-                    <Divider />
-                    <HStack justify="space-between">
-                      <Text fontSize="sm" color="gray.600">모집 마감</Text>
-                      <Text fontSize="sm" fontWeight="600" color="red.500">{deadline}</Text>
-                    </HStack>
-                    <Divider />
-                    <VStack align="stretch" spacing={1}>
-                      <Text fontSize="sm" color="gray.600">연락처</Text>
-                      <Text fontSize="sm" fontWeight="600" bg="blue.50" p={2} borderRadius="md">
-                        {contact}
-                      </Text>
-                    </VStack>
-                  </VStack>
-                </Box>
-
-                <Box bg="yellow.50" p={4} borderRadius="md" border="1px solid #FED7AA">
-                  <Text fontSize="sm" color="orange.700" textAlign="center" fontWeight="600">
-                    ⚠️ 학교 공식 프로젝트입니다
-                  </Text>
-                  <Text fontSize="xs" color="gray.600" textAlign="center" mt={1}>
-                    성실한 참여가 필요합니다
-                  </Text>
-                </Box>
-              </VStack>
-            </Box>
-          </Flex>
+                </>
+              )}
+              <Button variant="ghost" onClick={() => navigate('/project')}>
+                목록으로
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/chat')}>
+                채팅
+              </Button>
+            </HStack>
+          </VStack>
         </Box>
       </Flex>
+       <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>게시글 수정</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <Input
+                placeholder="제목"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+              <Input
+                placeholder="학교"
+                value={editSchool}
+                onChange={(e) => setEditSchool(e.target.value)}
+              />
+              <Input
+                placeholder="학과"
+                value={editDepartment}
+                onChange={(e) => setEditDepartment(e.target.value)}
+              />
+              <Textarea
+                placeholder="내용"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                minH="300px"
+              />
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleSave}>
+              저장
+            </Button>
+            <Button onClick={onClose}>취소</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

@@ -85,7 +85,7 @@ const TopNav: React.FC<TopNavProps> = ({
         {isAuthenticated ? (
           <>
             <Button colorScheme="gray" variant="outline" onClick={onLogout}>LOGOUT</Button>
-            <Button colorScheme="gray" variant="solid" onClick={() => navigate('/mypage')}>MyPage</Button>
+            <Button colorScheme="gray" variant="solid" onClick={() => navigate('/mypage')}>MYPAGE</Button>
           </>
         ) : (
           <>

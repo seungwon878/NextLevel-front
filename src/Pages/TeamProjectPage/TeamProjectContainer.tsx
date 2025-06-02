@@ -5,35 +5,46 @@ import { useAuth } from '../../AppContext';
 import { fetchTeamProjects } from '../../Apis/gwon/api';
 
 const TeamProjectContainer: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
-  const [searchText, setSearchText] = useState('');
-  const [school, setSchool] = useState('');
-  const [subject, setSubject] = useState('');
-  const [professor, setProfessor] = useState('');
+  const [allItems, setAllItems] = useState<Item[]>([]); // 전체 데이터 저장
+  const [items, setItems] = useState<Item[]>([]); // 필터링된 데이터
+  const [pendingSearchText, setPendingSearchText] = useState('');
+  const [pendingSchool, setPendingSchool] = useState('');
+  const [pendingDepartment, setPendingDepartment] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { isAuthenticated, logout } = useAuth();
 
-  // API에서 팀 프로젝트 목록 조회
+  // 초기 데이터 로드 (필터 없이 전체 데이터 가져오기)
   useEffect(() => {
     const loadData = async () => {
       try {
-        const projects = await fetchTeamProjects(searchText);
-        setItems(projects);
+        const projects = await fetchTeamProjects({});
+        setAllItems(projects);
+        setItems(projects); // 초기에는 전체 데이터 표시
       } catch (err) {
         setError(err instanceof Error ? err.message : '알 수 없는 오류 발생');
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
-  }, [searchText]);
+  }, []);
 
-  // 필터 옵션 추출 (API에서 학교/과목/교수 목록을 가져오는 것이 더 나음)
-  const schoolOptions = Array.from(new Set(items.map(item => item.school)));
-  const subjectOptions = Array.from(new Set(items.map(item => item.subject)));
-  const professorOptions = Array.from(new Set(items.map(item => item.professor)));
+  // 클라이언트 측 필터링 함수
+  const handleSearch = () => {
+    const filtered = allItems.filter(item => {
+      const matchesSearch = item.title.toLowerCase().includes(pendingSearchText.toLowerCase()) ||
+                           item.content.toLowerCase().includes(pendingSearchText.toLowerCase());
+      const matchesSchool = pendingSchool ? item.school === pendingSchool : true;
+      const matchesDepartment = pendingDepartment ? item.department === pendingDepartment : true;
+      return matchesSearch && matchesSchool && matchesDepartment;
+    });
+    setItems(filtered);
+  };
+
+  // 옵션 추출
+  const schoolOptions = Array.from(new Set(allItems.map(item => item.school)));
+  const departmentOptions = Array.from(new Set(allItems.map(item => item.department)));
 
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>{error}</div>;
@@ -41,17 +52,15 @@ const TeamProjectContainer: React.FC = () => {
   return (
     <TeamProjectPresentation
       items={items}
-      searchText={searchText}
-      onSearchTextChange={setSearchText}
-      school={school}
-      onSchoolChange={setSchool}
-      subject={subject}
-      onSubjectChange={setSubject}
-      professor={professor}
-      onProfessorChange={setProfessor}
+      searchText={pendingSearchText}
+      onSearchTextChange={setPendingSearchText}
+      school={pendingSchool}
+      onSchoolChange={setPendingSchool}
+      department={pendingDepartment}
+      onDepartmentChange={setPendingDepartment}
+      onSearch={handleSearch}
       schoolOptions={schoolOptions}
-      subjectOptions={subjectOptions}
-      professorOptions={professorOptions}
+      departmentOptions={departmentOptions}
       isAuthenticated={isAuthenticated}
       onLogout={logout}
       currentPage="project"

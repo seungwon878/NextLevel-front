@@ -46,7 +46,7 @@ const LoginPageContainer: React.FC = () => {
         localStorage.setItem('rememberMe', 'false');
       }
       const result = await loginApi(username, password);
-      login();
+      login(username);
       navigate('/landing');
     } catch (err: any) {
       setError(err.message);
