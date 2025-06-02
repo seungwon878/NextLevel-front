@@ -75,7 +75,7 @@ const SideBar = ({
   return (
     <>
       <Box w="260px" bg="#F5F7FA" minH="calc(100vh - 72px)" px={8} py={8} borderRight="1px solid #E2E8F0">
-        <Text fontWeight="bold" color="gray.400" mb={6}>◇ Base Components</Text>
+       
         <VStack align="stretch" spacing={4}>
           <Box>
             <Text mb={1}>검색</Text>

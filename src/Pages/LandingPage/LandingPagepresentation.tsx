@@ -18,7 +18,8 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-  Textarea
+  Textarea,
+  Spinner
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { createProblemPost } from '../../Apis/han/problemPostApi';
@@ -143,8 +144,8 @@ const SideBar = ({
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !uploadTitle || !uploadSchool || !uploadSubject || !uploadProfessor) {
-      alert('모든 정보를 입력하고 파일을 선택하세요.');
+    if (!uploadTitle || !uploadSchool || !uploadSubject || !uploadProfessor) {
+      alert('제목, 학교, 과목, 교수 정보를 입력하세요.');
       return;
     }
 
@@ -156,7 +157,10 @@ const SideBar = ({
       formData.append('professorName', uploadProfessor);
       formData.append('school', uploadSchool);
       formData.append('subject', uploadSubject);
-      formData.append('file', selectedFile);
+      
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      }
 
       const response = await createProblemPost(formData);
       
@@ -191,17 +195,28 @@ const SideBar = ({
         py={8}
         borderRight="1px solid #E2E8F0"
       >
-        <Text fontWeight="bold" color="gray.400" mb={6}>
-          ⓞ Base Components
-        </Text>
+    
         <VStack align="stretch" spacing={4}>
           <Box>
             <Text mb={1}>검색</Text>
-            <Input placeholder="검색" value={searchText} onChange={e => onSearchTextChange(e.target.value)} />
+            <Input 
+              placeholder="검색" 
+              value={searchText} 
+              onChange={e => onSearchTextChange(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  onSearch();
+                }
+              }}
+            />
           </Box>
           <Box>
             <Text mb={1}>학교</Text>
-            <Select placeholder="학교 선택" value={school} onChange={e => onSchoolChange(e.target.value)}>
+            <Select 
+              placeholder="학교 선택" 
+              value={school} 
+              onChange={e => onSchoolChange(e.target.value)}
+            >
               <option value="">학교 선택</option>
               {schoolOptions.map((school) => (
                 <option key={school} value={school}>{school}</option>
@@ -210,7 +225,11 @@ const SideBar = ({
           </Box>
           <Box>
             <Text mb={1}>과목</Text>
-            <Select placeholder="과목 선택" value={subject} onChange={e => onSubjectChange(e.target.value)}>
+            <Select 
+              placeholder="과목 선택" 
+              value={subject} 
+              onChange={e => onSubjectChange(e.target.value)}
+            >
               <option value="">과목 선택</option>
               {subjectOptions.map((subject) => (
                 <option key={subject} value={subject}>{subject}</option>
@@ -219,14 +238,25 @@ const SideBar = ({
           </Box>
           <Box>
             <Text mb={1}>교수</Text>
-            <Select placeholder="교수 선택" value={professor} onChange={e => onProfessorChange(e.target.value)}>
+            <Select 
+              placeholder="교수 선택" 
+              value={professor} 
+              onChange={e => onProfessorChange(e.target.value)}
+            >
               <option value="">교수 선택</option>
               {professorOptions.map((prof) => (
                 <option key={prof} value={prof}>{prof}</option>
               ))}
             </Select>
           </Box>
-          <Button mt={4} colorScheme="gray" w="40px" h="40px" alignSelf="center" onClick={onSearch}>
+          <Button 
+            mt={4} 
+            colorScheme="gray" 
+            w="40px" 
+            h="40px" 
+            alignSelf="center" 
+            onClick={onSearch}
+          >
             →
           </Button>
         </VStack>
@@ -278,7 +308,7 @@ const SideBar = ({
   );
 };
 
-const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
+const LandingPagePresentation: React.FC<Props> = ({
   items,
   searchText,
   onSearchTextChange,
@@ -333,9 +363,6 @@ const LandingPagePresentation: React.FC<Props & TopNavProps> = ({
             p={8}
             minH="600px"
           >
-            <Text fontWeight="bold" fontSize="lg" mb={4}>
-              Section 30
-            </Text>
             <VStack spacing={8} align="stretch">
               {items.map((item) => (
                 <Box key={item.id}>
