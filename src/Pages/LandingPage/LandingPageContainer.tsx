@@ -7,6 +7,7 @@ import { getAllProblemPosts, searchProblemPosts, ProblemPost } from '../../Apis/
 
 const LandingPageContainer: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
+  const [allItems, setAllItems] = useState<Item[]>([]); // 전체 아이템 저장
   const [searchText, setSearchText] = useState('');
   const [school, setSchool] = useState('');
   const [subject, setSubject] = useState('');
@@ -18,7 +19,7 @@ const LandingPageContainer: React.FC = () => {
       const response = await getAllProblemPosts();
       if (response.success) {
         const transformedItems: Item[] = response.data.content.map((post: ProblemPost) => ({
-          id: parseInt(post.problemDataUrl.split('/').pop()?.split('_')[0] || '0'),
+          id: post.id,
           section: 'Section 30',
           title: post.title,
           school: post.school,
@@ -26,6 +27,7 @@ const LandingPageContainer: React.FC = () => {
           professor: post.professorName
         }));
         setItems(transformedItems);
+        setAllItems(transformedItems); // 전체 아이템 저장
       }
     } catch (error) {
       console.error('문제 게시글을 불러오는데 실패했습니다:', error);
@@ -38,16 +40,17 @@ const LandingPageContainer: React.FC = () => {
 
   const handleSearch = async () => {
     try {
-      const response = await searchProblemPosts({
-        title: searchText || undefined,
-        school: school || undefined,
-        subject: subject || undefined,
-        professorName: professor || undefined
-      });
+      const searchParams: any = {};
+      if (searchText) searchParams.title = searchText;
+      if (school) searchParams.school = school;
+      if (subject) searchParams.subject = subject;
+      if (professor) searchParams.professorName = professor;
+
+      const response = await searchProblemPosts(searchParams);
       
       if (response.success) {
         const transformedItems: Item[] = response.data.content.map((post: ProblemPost) => ({
-          id: parseInt(post.problemDataUrl.split('/').pop()?.split('_')[0] || '0'),
+          id: post.id,
           section: 'Section 30',
           title: post.title,
           school: post.school,
@@ -61,10 +64,10 @@ const LandingPageContainer: React.FC = () => {
     }
   };
 
-  // 중복 없는 학교, 과목, 교수 목록 추출
-  const schoolOptions = Array.from(new Set(items.map(item => item.school)));
-  const subjectOptions = Array.from(new Set(items.map(item => item.subject)));
-  const professorOptions = Array.from(new Set(items.map(item => item.professor)));
+  // 중복 없는 학교, 과목, 교수 목록 추출 (전체 데이터에서)
+  const schoolOptions = Array.from(new Set(allItems.map(item => item.school)));
+  const subjectOptions = Array.from(new Set(allItems.map(item => item.subject)));
+  const professorOptions = Array.from(new Set(allItems.map(item => item.professor)));
 
   const handleLogout = () => {
     logout();
