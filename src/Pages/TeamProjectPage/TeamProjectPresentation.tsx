@@ -264,24 +264,32 @@ const TeamProjectPresentation: React.FC<Props & TopNavProps> = ({
             minH="600px"
           >
             <VStack spacing={8} align="stretch">
-              {items.map((item) => (
-                <Box key={item.id}>
-                  <Flex align="center" justify="space-between">
-                    <Text fontWeight="bold" fontSize="2xl">
-                      {item.title}
-                    </Text>
-                    <HStack>
-                      <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/team/${item.id}`)}>
-                        자세히 보기
-                      </Button>
-                      <Button colorScheme="gray" variant="solid">
-                        채팅
-                      </Button>
-                    </HStack>
-                  </Flex>
-                  <Divider my={4} />
+              {items.length === 0 ? (
+                <Box py={24} textAlign="center">
+                  <Text fontSize="xl" color="gray.500">
+                    검색 결과가 없습니다.
+                  </Text>
                 </Box>
-              ))}
+              ) : (
+                items.map((item) => (
+                  <Box key={item.id}>
+                    <Flex align="center" justify="space-between">
+                      <Text fontWeight="bold" fontSize="2xl">
+                        {item.title}
+                      </Text>
+                      <HStack>
+                        <Button variant="outline" colorScheme="gray" onClick={() => navigate(`/team/${item.id}`)}>
+                          자세히 보기
+                        </Button>
+                        <Button colorScheme="gray" variant="solid">
+                          채팅
+                        </Button>
+                      </HStack>
+                    </Flex>
+                    <Divider my={4} />
+                  </Box>
+                ))
+              )}
             </VStack>
           </Box>
         </Box>

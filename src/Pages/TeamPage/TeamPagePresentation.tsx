@@ -151,10 +151,10 @@ const TeamPagePresentation: React.FC<TeamPagePresentationProps> = ({
             </HStack>
             <Divider />
             <Text color="gray.600" fontSize="sm">
-              작성일: {new Date(createdAt).toLocaleString()}
+              작성일: {new Date(createdAt+"Z").toLocaleString('ko-KR')}
             </Text>
             <Text color="gray.600" fontSize="sm">
-              수정일: {new Date(updatedAt).toLocaleString()}
+              수정일: {new Date(updatedAt+"Z").toLocaleString('ko-KR')}
             </Text>
             <Divider />
             <Text fontSize="md" whiteSpace="pre-line">{content}</Text>
