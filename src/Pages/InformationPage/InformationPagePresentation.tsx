@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import {
-  Box, Flex, Button, Text, VStack, HStack, Divider, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure
+  Box, Flex, Button, Text, VStack, HStack, Divider, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, useToast, FormControl, FormLabel, Input, Textarea, Select
 } from '@chakra-ui/react';
 import { FaRegImage, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { updateProblemPost, deleteProblemPost } from '../../Apis/han/problemPostApi';
 
 interface InformationPagePresentationProps {
+  id: number;
   title: string;
   school: string;
   subject: string;
@@ -14,6 +16,10 @@ interface InformationPagePresentationProps {
   fileUrl: string;
   fileName: string;
   onDownload?: () => void;
+  schoolOptions: string[];
+  subjectOptions: string[];
+  professorOptions: string[];
+  isAuthor: boolean;
 }
 
 const TopNav = () => {
@@ -49,8 +55,31 @@ const TopNav = () => {
   );
 };
 
-const InformationPagePresentation: React.FC<InformationPagePresentationProps> = ({ title, school, subject, professor, detail, fileUrl, fileName, onDownload }) => {
+const InformationPagePresentation: React.FC<InformationPagePresentationProps> = ({ 
+  id,
+  title, 
+  school, 
+  subject, 
+  professor, 
+  detail, 
+  fileUrl, 
+  fileName, 
+  onDownload,
+  schoolOptions,
+  subjectOptions,
+  professorOptions,
+  isAuthor
+}) => {
+  const navigate = useNavigate();
+  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
+  const [editedTitle, setEditedTitle] = useState(title);
+  const [editedSchool, setEditedSchool] = useState(school);
+  const [editedSubject, setEditedSubject] = useState(subject);
+  const [editedProfessor, setEditedProfessor] = useState(professor);
+  const [editedDetail, setEditedDetail] = useState(detail);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleDownload = () => {
     if (fileUrl) {
@@ -60,6 +89,87 @@ const InformationPagePresentation: React.FC<InformationPagePresentationProps> = 
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+  };
+
+  const handleEdit = async () => {
+    try {
+      const formData = new FormData();
+      
+      // request 데이터 구성
+      const requestData = {
+        title: editedTitle,
+        content: editedDetail,
+        professorName: editedProfessor,
+        school: editedSchool,
+        subject: editedSubject
+      };
+
+      // JSON 데이터는 "request"라는 이름의 Blob으로 추가
+      formData.append(
+        'request',
+        new Blob([JSON.stringify(requestData)], { type: 'application/json' })
+      );
+      
+      // 파일이 있는 경우에만 "data"라는 이름으로 추가
+      if (selectedFile) {
+        formData.append('data', selectedFile);
+      }
+
+      console.log('FormData contents:');
+      Array.from(formData.entries()).forEach(pair => {
+        console.log(pair[0], pair[1]);
+      });
+
+      const response = await updateProblemPost(id, formData);
+      if (response.success) {
+        toast({
+          title: '게시글이 수정되었습니다.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        onEditClose();
+        window.location.reload();
+      } else {
+        throw new Error(response.message || '게시글 수정에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Edit error:', error);
+      toast({
+        title: '게시글 수정 실패',
+        description: error instanceof Error ? error.message : '게시글 수정 중 오류가 발생했습니다.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+      try {
+        const response = await deleteProblemPost(id);
+        if (response.success) {
+          toast({
+            title: '게시글이 삭제되었습니다.',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
+          navigate('/landing');
+        } else {
+          throw new Error(response.message || '게시글 삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        toast({
+          title: '게시글 삭제 실패',
+          description: error instanceof Error ? error.message : '게시글 삭제 중 오류가 발생했습니다.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     }
   };
 
@@ -137,10 +247,12 @@ const InformationPagePresentation: React.FC<InformationPagePresentationProps> = 
               <Button variant="outline" w="60%" alignSelf="center" mt={4} onClick={onOpen}>
                 전체 상세정보
               </Button>
-              <Flex justify="flex-end" mt={8} gap={2}>
-                <IconButton aria-label="외부 링크" icon={<FaExternalLinkAlt />} size="sm" />
-                <IconButton aria-label="삭제" icon={<FaTrash />} size="sm" />
-              </Flex>
+              {isAuthor && (
+                <Flex justify="flex-end" mt={8} gap={2}>
+                  <Button size="sm" colorScheme="blue" variant="outline" onClick={onEditOpen}>수정</Button>
+                  <Button size="sm" colorScheme="red" variant="outline" onClick={handleDelete}>삭제</Button>
+                </Flex>
+              )}
             </Box>
           </Flex>
         </Box>
@@ -153,6 +265,65 @@ const InformationPagePresentation: React.FC<InformationPagePresentationProps> = 
           <ModalCloseButton />
           <ModalBody>
             <Text fontSize="md" color="gray.700">{detail}</Text>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* 수정 모달 */}
+      <Modal isOpen={isEditOpen} onClose={onEditClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>게시글 수정</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <VStack spacing={4}>
+              <FormControl>
+                <FormLabel>제목</FormLabel>
+                <Input
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>학교</FormLabel>
+                <Input
+                  value={editedSchool}
+                  onChange={(e) => setEditedSchool(e.target.value)}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>과목</FormLabel>
+                <Input
+                  value={editedSubject}
+                  onChange={(e) => setEditedSubject(e.target.value)}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>교수</FormLabel>
+                <Input
+                  value={editedProfessor}
+                  onChange={(e) => setEditedProfessor(e.target.value)}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>내용</FormLabel>
+                <Textarea
+                  value={editedDetail}
+                  onChange={(e) => setEditedDetail(e.target.value)}
+                  rows={10}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel>파일 첨부</FormLabel>
+                <Input
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
+              </FormControl>
+              <Button colorScheme="blue" onClick={handleEdit} width="full">
+                수정하기
+              </Button>
+            </VStack>
           </ModalBody>
         </ModalContent>
       </Modal>
