@@ -187,6 +187,17 @@ export const updateProblemPost = async (
   postId: number,
   formData: FormData
 ): Promise<ProblemPostResponse> => {
-  const { data } = await api.post<ProblemPostResponse>(`${BASE_URL}/${postId}`, formData);
+  // 게시글 생성과 동일한 방식으로 데이터 구성
+  const { data } = await api.patch<ProblemPostResponse>(`${BASE_URL}/${postId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return data;
+};
+
+// ✅ 게시글 삭제
+export const deleteProblemPost = async (postId: number): Promise<ProblemPostResponse> => {
+  const { data } = await api.delete<ProblemPostResponse>(`${BASE_URL}/${postId}`);
   return data;
 };
