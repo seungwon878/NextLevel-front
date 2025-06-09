@@ -7,13 +7,13 @@ export async function loginApi(username: string, password: string) {
   const result = await response.json();
 
   if (!response.ok) {
-    switch (result.statusMessage) {
-      case "NOT_FOUND":
+    switch (result.code) {
+      case "NOT_FOUND_USER":
         throw new Error('존재하지 않는 아이디입니다.');
-      case "BAD_CREDENTIALS":
+      case "NOT_MATCHED_PASSWORD":
         throw new Error('아이디와 비밀번호가 일치하지 않습니다.');
       default:
-        throw new Error(result.statusMessage || '로그인 실패');
+        throw new Error(result.code || '로그인 실패');
     }
   }
 
@@ -44,13 +44,13 @@ export async function signupApi(email: string, username: string, password: strin
   const result = await response.json();
 
   if (!response.ok) {
-    switch (result.statusMessage) {
-      case "DUPLICATED_MEMBER":
+    switch (result.code) {
+      case "DUPLICATE_MEMBER":
         throw new Error('동일한 아이디가 존재합니다.');
-      case "DUPLICATED_EMAIL":
+      case "DUPLICATE_EMAIL":
         throw new Error('동일한 이메일이 존재합니다.');
       default:
-        throw new Error(result.statusMessage || '회원가입 실패');
+        throw new Error(result.code || '회원가입 실패');
     }
   }
   return result;
@@ -152,7 +152,7 @@ export async function deleteMyAccount(token: string) {
 export async function fetchTeamProjects({
   kw = '',
   page = 0,
-  size = 10,
+  size = 100,
   sort = 'createdAt,desc',
 }: {
   kw?: string;
