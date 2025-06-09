@@ -23,6 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { verifyPasswordApi, changePasswordApi, deleteMyAccount, updateProfileApi } from '../../Apis/gwon/api';
 
+
 interface Profile {
   username: string;
   email: string;
@@ -39,6 +40,22 @@ interface MyPagePresentationProps {
   onRegister: () => void;
   onGoMyPage: () => void;
   onGoMain: () => void;
+  onShowMyTeamProjects: () => void;
+  showTeamProjects: boolean;
+  myTeamProjects: any[];
+  teamProjectsLoading: boolean;
+  selectedProject: any;
+  projectDetailLoading: boolean;
+  onProjectClick: (id: string | number) => void;
+  onBackToList: () => void;
+  onShowMyProblemPosts: () => void;
+  showProblemPosts: boolean;
+  myProblemPosts: any[];
+  problemPostsLoading: boolean;
+  selectedProblemPost: any;
+  problemPostDetailLoading: boolean;
+  onProblemPostClick: (id: number) => void;
+  onBackToProblemList: () => void;
 }
 
 const TopNav: React.FC<MyPagePresentationProps> = ({
@@ -101,6 +118,7 @@ const TopNav: React.FC<MyPagePresentationProps> = ({
     </Flex>
   );
 };
+
 
 const PasswordChangeModal: React.FC<{ isOpen: boolean; onClose: () => void; token: string }> = ({ isOpen, onClose, token }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -285,18 +303,6 @@ const SideBar: React.FC<{ onChangePassword: () => void; onDeleteAccount: () => v
         회원 탈퇴
       </Button>
     </VStack>
-    <Divider my={6} />
-    <VStack align="stretch" spacing={4}>
-      <Button colorScheme="gray" w="100%">
-        내가 올린 문제
-      </Button>
-      <Button colorScheme="gray" w="100%">
-        내가 올린 팀 구인
-      </Button>
-      <Button colorScheme="gray" w="100%">
-        내가 올린 Q&amp;A
-      </Button>
-    </VStack>
   </Box>
 );
 
@@ -310,6 +316,7 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
   const [content, setContent] = useState(profile?.content || '');
   const [image, setImage] = useState<File | null>(null);
   const [editMsg, setEditMsg] = useState('');
+  const navigate = useNavigate();
 
   const handleProfileEdit = async () => {
     try {
@@ -374,12 +381,52 @@ const MyPagePresentation: React.FC<MyPagePresentationProps> = (props) => {
               </Box>
               <Divider />
               <VStack spacing={4} align="stretch">
-                <Button variant="outline" colorScheme="gray" size="lg">
+                <Button variant="outline" colorScheme="gray" size="lg" onClick={props.onShowMyProblemPosts}>
                   내가 올린 문제 게시판 확인하러 가기
                 </Button>
-                <Button variant="outline" colorScheme="gray" size="lg">
+                {props.myProblemPosts.map((item) => (
+                  <Box
+                    key={item.id}
+                    p={3}
+                    border="1px solid #E2E8F0"
+                    borderRadius="md"
+                    bg="#F8FAFC"
+                    cursor="pointer"
+                    _hover={{ bg: "#E2E8F0" }}
+                    onClick={() => navigate(`/information/${item.id}`)}
+                  >
+                    <Text fontWeight="bold">{item.title}</Text>
+                    <Text fontSize="sm" color="gray.600">
+                      {item.school} / {item.subject}
+                    </Text>
+                    <Text fontSize="sm" color="gray.400">
+                      {new Date(item.createdAt + 'Z').toLocaleString()}
+                    </Text>
+                  </Box>
+                ))}
+                <Button variant="outline" colorScheme="gray" size="lg" onClick={props.onShowMyTeamProjects}>
                   내가 올린 팀 구인 글 확인하러 가기
                 </Button>
+                {props.myTeamProjects.map((item) => (
+                  <Box
+                    key={item.id}
+                    p={3}
+                    border="1px solid #E2E8F0"
+                    borderRadius="md"
+                    bg="#F8FAFC"
+                    cursor="pointer"
+                    _hover={{ bg: "#E2E8F0" }}
+                    onClick={() => navigate(`/team/${item.id}`)}
+                  >
+                    <Text fontWeight="bold">{item.title}</Text>
+                    <Text fontSize="sm" color="gray.600">
+                      {item.school} / {item.department}
+                    </Text>
+                    <Text fontSize="sm" color="gray.400">
+                      {new Date(item.createdAt + 'Z').toLocaleString()}
+                    </Text>
+                  </Box>
+                ))}
                 <Button variant="outline" colorScheme="gray" size="lg">
                   내가 올린 Q&amp;A 확인하러 가기
                 </Button>
