@@ -5,6 +5,7 @@ import {
 import { FaRegImage, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { updateProblemPost, deleteProblemPost } from '../../Apis/han/problemPostApi';
+import { useAuth } from '../../AppContext';
 
 interface InformationPagePresentationProps {
   id: number;
@@ -24,6 +25,13 @@ interface InformationPagePresentationProps {
 
 const TopNav = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/landing');
+  };
+
   return (
     <Flex
       as="nav"
@@ -34,22 +42,35 @@ const TopNav = () => {
       bg="white"
       borderBottom="1px solid #2D3748"
     >
-      <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg">
+      <Button fontWeight="bold" colorScheme="gray" variant="solid" size="lg" onClick={() => navigate('/landing')}>
         Logo
       </Button>
       <HStack spacing={8}>
         <Button variant="ghost" onClick={() => navigate('/landing')}>문제 게시판</Button>
-        <Button variant="ghost">프로젝트 팀</Button>
+        <Button variant="ghost" onClick={() => navigate('/project')}>프로젝트 팀</Button>
         <Button variant="ghost" onClick={() => navigate('/qapage')}>Q&A 게시판</Button>
-        <Button variant="ghost">채팅</Button>
+        <Button variant="ghost" onClick={() => navigate('/chat')}>채팅</Button>
       </HStack>
       <HStack spacing={2}>
-        <Button colorScheme="gray" variant="outline">
-          LOGIN
-        </Button>
-        <Button colorScheme="gray" variant="solid">
-          MyPage
-        </Button>
+        {isAuthenticated ? (
+          <>
+            <Button colorScheme="gray" variant="outline" onClick={handleLogout}>
+              LOGOUT
+            </Button>
+            <Button colorScheme="gray" variant="solid" onClick={() => navigate('/mypage')}>
+              MYPAGE
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button colorScheme="gray" variant="outline" onClick={() => navigate('/login')}>
+              LOGIN
+            </Button>
+            <Button colorScheme="gray" variant="solid" onClick={() => navigate('/signup')}>
+              REGISTER
+            </Button>
+          </>
+        )}
       </HStack>
     </Flex>
   );

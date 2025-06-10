@@ -201,3 +201,13 @@ export const deleteProblemPost = async (postId: number): Promise<ProblemPostResp
   const { data } = await api.delete<ProblemPostResponse>(`${BASE_URL}/${postId}`);
   return data;
 };
+const BASE_API_URL = "http://52.78.159.151:8080/api/file";
+
+const handleDownload = (problemDataUrl: string) => {
+  const link = document.createElement('a');
+  link.href = BASE_API_URL + problemDataUrl;
+  link.download = problemDataUrl.split('/').pop() || 'downloaded_file';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
